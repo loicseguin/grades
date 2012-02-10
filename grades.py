@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 import sys
 
@@ -105,7 +106,8 @@ class GradesTable(object):
         for student in self.students:
             cumul = sum((student[evalu['name']] * evalu['weight'] /
                          evalu['max_grade']
-                         for evalu in self.evals if student[evalu['name']]))
+                         for evalu in self.evals if
+                         isinstance(student[evalu['name']], (float, int))))
             student['-- Cumul --'] = cumul
         self.columns.append('-- Cumul --')
 
@@ -119,9 +121,9 @@ class GradesTable(object):
             self.mean[column] = ''
             if column in self.eval_names or column.startswith('--'):
                 nb_students = sum((1 for student in self.students if
-                                  student[column]))
+                                  isinstance(student[column], (float, int))))
                 s = sum((student[column] for student in self.students
-                         if student[column]))
+                         if isinstance(student[column], (float, int))))
                 if nb_students:
                     self.mean[column] = s / nb_students
 
@@ -216,10 +218,10 @@ if __name__ == '__main__':
 |----------------------+--------+--------+---------+-----------|
 | Bob Arthur        | 301   | 23     | 45     |         |           |
 | Suzanne Tremblay  | 302   | 67     | 78     |         |           |
+| Albert Prévert    | 302   |        | ABS    | 78      |           |
 | -- Some stuff--   | This row | should | be |    | ignored |"""
     grades_tbl = GradesTable(test_data.split('\n'))
     writer = TableWriter(grades_tbl)
-    writer.printt()
     grades_tbl.compute_cumul()
     grades_tbl.compute_mean()
     writer.printt()
