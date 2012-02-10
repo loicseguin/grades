@@ -39,9 +39,6 @@ class GradesTable(object):
         self.evals = []
         self.students = []
         self.mean = {}
-        self.min_width = 5
-        self.padding_left = 1
-        self.padding_right = 1
         # The first three lines contain information about the evaluations.
         self.columns = [entry for entry in self.__parse_line(data[0])
                         if not entry.startswith('-')]
@@ -81,71 +78,11 @@ class GradesTable(object):
             if keyval:
                 self.students.append(dict(keyval))
 
-    def __str__(self):
-        self.__set_columns_width()
-        # Header row.
-        str_tbl = self.__row_str(self.columns)
-
-        # Max and weight rows. These are filled only for evaluation columns.
-        i = 0
-        max_row = []
-        weight_row = []
-        for column in self.columns:
-            if column in self.eval_names:
-                max_row.append(self.evals[i]['max_grade'])
-                weight_row.append(self.evals[i]['weight'])
-
-                i += 1
-            else:
-                max_row.append('')
-                weight_row.append('')
-        str_tbl += self.__row_str(max_row) + self.__row_str(weight_row)
-        str_tbl += self.__div_row()
-
-        for student in self.students:
-            str_tbl += self.__row_str(
-                    (student[cname] for cname in self.columns))
-
-        str_tbl += self.__div_row()
-        if self.mean:
-            str_tbl += self.__row_str((self.mean[cname] for cname in
-                self.columns))
-        return str_tbl
 
     def __parse_line(self, line):
         for entry in line.strip('|').split('|'):
             yield entry.strip()
 
-    def __set_columns_width(self):
-        self.column_widths = []
-        for column in self.columns:
-            col = [column]
-            col += [str(student[column]) for student in self.students]
-            if self.mean:
-                col += [str(self.mean[column])]
-            self.column_widths.append(
-                self.padding_left + self.padding_right +
-                max(len(row) for row in col))
-
-    def __row_str(self, row):
-        """Create a string representation for a row in the table. The columns
-        corresponding to evaluations have their numbers justified right."""
-        padded = []
-        for i, rowelmt in enumerate(row):
-            width = self.column_widths[i]
-            if (self.columns[i] in self.eval_names
-                    and not isinstance(rowelmt, str)):
-                padded.append(
-                        ' ' * (width - len(str(rowelmt)) - self.padding_right)
-                        + str(rowelmt) + ' ' * self.padding_right)
-            else:
-                padded.append(' ' * self.padding_left + str(rowelmt)
-                        + ' ' * (width - len(str(rowelmt)) - self.padding_left))
-        return '|' + '|'.join(padded) + '|\n'
-
-    def __div_row(self):
-        div = '|' + '+'.join(('-' * width for width in self.column_widths))
-        return div + '|\n'
 
     def __to_float(self, val, default=100.):
         try:
@@ -180,6 +117,75 @@ class GradesTable(object):
                 self.mean[column] = ''
 
 
+class TableWriter(object):
+    def __init__(self, grade_table):
+        self.min_width = 5
+        self.padding_left = 1
+        self.padding_right = 1
+        self.table = grade_table
+
+    def printt(self):
+        self.__set_columns_width()
+        # Header row.
+        str_tbl = self.__row_str(self.table.columns)
+
+        # Max and weight rows. These are filled only for evaluation columns.
+        i = 0
+        max_row = []
+        weight_row = []
+        for column in self.table.columns:
+            if column in self.table.eval_names:
+                max_row.append(self.table.evals[i]['max_grade'])
+                weight_row.append(self.table.evals[i]['weight'])
+                i += 1
+            else:
+                max_row.append('')
+                weight_row.append('')
+        str_tbl += self.__row_str(max_row) + self.__row_str(weight_row)
+        str_tbl += self.__div_row()
+
+        for student in self.table.students:
+            str_tbl += self.__row_str(
+                    (student[cname] for cname in self.table.columns))
+
+        str_tbl += self.__div_row()
+        if self.table.mean:
+            str_tbl += self.__row_str((self.table.mean[cname] for cname in
+                self.table.columns))
+        print(str_tbl)
+
+    def __set_columns_width(self):
+        self.column_widths = []
+        for column in self.table.columns:
+            col = [column]
+            col += [str(student[column]) for student in self.table.students]
+            if self.table.mean:
+                col += [str(self.table.mean[column])]
+            self.column_widths.append(
+                self.padding_left + self.padding_right +
+                max(len(row) for row in col))
+
+    def __row_str(self, row):
+        """Create a string representation for a row in the table. The columns
+        corresponding to evaluations have their numbers justified right."""
+        padded = []
+        for i, rowelmt in enumerate(row):
+            width = self.column_widths[i]
+            if (self.table.columns[i] in self.table.eval_names
+                    and not isinstance(rowelmt, str)):
+                padded.append(
+                        ' ' * (width - len(str(rowelmt)) - self.padding_right)
+                        + str(rowelmt) + ' ' * self.padding_right)
+            else:
+                padded.append(' ' * self.padding_left + str(rowelmt)
+                        + ' ' * (width - len(str(rowelmt)) - self.padding_left))
+        return '|' + '|'.join(padded) + '|\n'
+
+    def __div_row(self):
+        div = '|' + '+'.join(('-' * width for width in self.column_widths))
+        return div + '|\n'
+
+
 if __name__ == '__main__':
     test_data = """| Nom    |Group | Test 1 | Test 2 | Midterm | --Cumul-- |
 |                   |   | 70     | 100    |     |           |
@@ -188,9 +194,10 @@ if __name__ == '__main__':
 | Bob Arthur        | 301   | 23     | 45     |         |           |
 | Suzanne Tremblay  | 302   | 67     | 78     |         |           |"""
     grades_tbl = GradesTable(test_data.split('\n'))
-    print(grades_tbl)
+    writer = TableWriter(grades_tbl)
+    writer.printt()
     grades_tbl.compute_cumul()
     grades_tbl.compute_mean()
-    print(grades_tbl)
+    writer.printt()
 
 
