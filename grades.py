@@ -4,8 +4,8 @@ import sys
 
 class GradesFile(object):
     """A GradesFile contains one table of grades. The GradesFile
-    object is initialized with a filename and has methods to parse the file. It
-    recognizes grade tables and creates new GradesTable objects as needed."""
+    object is initialized with a filename. It takes care of safeguarding the
+    content of the file before and after the table."""
     def __init__(self, filename):
         """Initialize the GradesFile object by parsing filename."""
         object.__init__(self)
@@ -28,12 +28,15 @@ class GradesFile(object):
         if len(tablelines) < 3:
             sys.stderr.write('Error: Malformed table in file ' + filename)
             sys.exit(1)
-
         self.table = GradesTable(tablelines)
 
 
 class GradesTable(object):
+    """A GradesTable contains all the data in a table and can perform
+    calculations and modify the table to include the results."""
     def __init__(self, data):
+        """To instanciate a new GradesTable, one must provide data in the form
+        of a list of lines."""
         object.__init__(self)
         self.columns = []
         self.evals = []
@@ -80,17 +83,25 @@ class GradesTable(object):
 
 
     def __parse_line(self, line):
+        """Read a line and split it into tokens. This is a generator that
+        yields the tokens. A typical line looks like
+            | Some Name | Extra info | 78 | 89 | 90|
+        and gets parsed into the following list:
+            ['Some Name', 'Extra info', 78, 89, 90]."""
         for entry in line.strip('|').split('|'):
             yield entry.strip()
 
 
     def __to_float(self, val, default=100.):
+        """Convert string val into float with fallback value default."""
         try:
             return float(val)
         except ValueError:
             return default
 
     def compute_cumul(self):
+        """Calculate the weighted mean for each student and add that result
+        in a new column at the end of the table."""
         for student in self.students:
             cumul = sum((student[evalu['name']] * evalu['weight'] /
                          evalu['max_grade']
@@ -99,22 +110,20 @@ class GradesTable(object):
         self.columns.append('-- Cumul --')
 
     def compute_mean(self):
+        """Calculate the class mean for each evaluation and add the results to
+        a new row at the bottom of the table. Blanks in the table are not taken
+        into account, i.e., a blank does not count as a zero."""
         self.mean = {}
         self.mean[self.columns[0]] = '-- Moyenne --'
-        i = 0
         for column in self.columns[1:]:
-            if column in self.eval_names:
-                evalu = self.evals[i]
-                s = sum((student[evalu['name']] for student in self.students
-                         if student[evalu['name']]))
-                self.mean[column] = (s / len(self.students))
-                i += 1
-            elif column.startswith('--'):
-                s = sum((student['-- Cumul --'] for student in self.students
-                         if student['-- Cumul --']))
-                self.mean['-- Cumul --'] = s / len(self.students)
-            else:
-                self.mean[column] = ''
+            self.mean[column] = ''
+            if column in self.eval_names or column.startswith('--'):
+                nb_students = sum((1 for student in self.students if
+                                  student[column]))
+                s = sum((student[column] for student in self.students
+                         if student[column]))
+                if nb_students:
+                    self.mean[column] = s / nb_students
 
 
 class TableWriter(object):
