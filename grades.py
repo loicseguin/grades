@@ -123,8 +123,16 @@ class TableWriter(object):
         self.padding_left = 1
         self.padding_right = 1
         self.table = grade_table
+        self.num_columns = list(grade_table.eval_names)
+        self.num_rows = list(grade_table.students)
+        self.precision = 2
 
     def printt(self):
+        if ('-- Cumul --' in self.table.columns and not '-- Cumul --' in
+            self.num_columns):
+            self.num_columns += ['-- Cumul --']
+        if (self.table.mean and not self.table.mean in self.num_rows):
+            self.num_rows += [self.table.mean]
         self.__set_columns_width()
         # Header row.
         str_tbl = self.__row_str(self.table.columns)
@@ -148,8 +156,8 @@ class TableWriter(object):
             str_tbl += self.__row_str(
                     (student[cname] for cname in self.table.columns))
 
-        str_tbl += self.__div_row()
         if self.table.mean:
+            str_tbl += self.__div_row()
             str_tbl += self.__row_str((self.table.mean[cname] for cname in
                 self.table.columns))
         print(str_tbl)
@@ -158,9 +166,14 @@ class TableWriter(object):
         self.column_widths = []
         for column in self.table.columns:
             col = [column]
-            col += [str(student[column]) for student in self.table.students]
-            if self.table.mean:
-                col += [str(self.table.mean[column])]
+            if column in self.num_columns:
+                for student in self.num_rows:
+                    if not isinstance(student[column], str):
+                        col += [format(student[column], '.%df'%self.precision)]
+                    else:
+                        col += [student[column]]
+            else:
+                col += [str(student[column]) for student in self.table.students]
             self.column_widths.append(
                 self.padding_left + self.padding_right +
                 max(len(row) for row in col))
@@ -171,11 +184,12 @@ class TableWriter(object):
         padded = []
         for i, rowelmt in enumerate(row):
             width = self.column_widths[i]
-            if (self.table.columns[i] in self.table.eval_names
-                    and not isinstance(rowelmt, str)):
+            if (self.table.columns[i] in self.num_columns
+                and not isinstance(rowelmt, str)):
+                str_elmt = format(rowelmt, '.%df' % self.precision)
                 padded.append(
-                        ' ' * (width - len(str(rowelmt)) - self.padding_right)
-                        + str(rowelmt) + ' ' * self.padding_right)
+                        ' ' * (width - len(str_elmt) - self.padding_right)
+                        + str_elmt + ' ' * self.padding_right)
             else:
                 padded.append(' ' * self.padding_left + str(rowelmt)
                         + ' ' * (width - len(str(rowelmt)) - self.padding_left))
@@ -192,7 +206,8 @@ if __name__ == '__main__':
 |                   |   | 10     | 10     | 30      |           |
 |----------------------+--------+--------+---------+-----------|
 | Bob Arthur        | 301   | 23     | 45     |         |           |
-| Suzanne Tremblay  | 302   | 67     | 78     |         |           |"""
+| Suzanne Tremblay  | 302   | 67     | 78     |         |           |
+| -- Some stuff--   | This row | should | be |    | ignored |"""
     grades_tbl = GradesTable(test_data.split('\n'))
     writer = TableWriter(grades_tbl)
     writer.printt()
