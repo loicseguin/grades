@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+from __future__ import print_function # For Python 2 compatibility.
+
+
 __author__ = "Loïc Séguin-C."
 __license__ = "BSD"
 __version__ = "0.1"
@@ -102,7 +105,6 @@ class GradesTable(object):
             if keyval:
                 self.students.append(dict(keyval))
 
-
     def __parse_line(self, line):
         """Read a line and split it into tokens. This is a generator that
         yields the tokens. A typical line looks like
@@ -111,7 +113,6 @@ class GradesTable(object):
             ['Some Name', 'Extra info', 78, 89, 90]."""
         for entry in line.strip('|').split('|'):
             yield entry.strip()
-
 
     def __to_float(self, val, default=100.):
         """Convert string val into float with fallback value default."""
@@ -151,17 +152,31 @@ class GradesTable(object):
 
 
 class TableWriter(object):
+    """A TableWriter takes care of formatting and printing a GradesTable."""
     def __init__(self, grade_table):
+        """Initialize the writer. The default parameters for a writer are to
+        use a minimum column width of 5, left and right padding of 1 and a
+        precision for floating point values of 2."""
+        object.__init__(self)
         self.min_width = 5
         self.padding_left = 1
         self.padding_right = 1
         self.table = grade_table
         self.precision = 2
 
-    def printt(self, div_on=['Group', 'Test 1']):
+    def printt(self, div_on=['Group']):
+        """Print the table. Horizontal divisions will be written between rows
+        for which one of the values in the div_on iterable container are
+        different. div_on should contain column names."""
         self.__set_columns_width()
-        # Header row.
-        str_tbl = self.__row_str(self.table.columns)
+        self.print_header()
+        self.print_rows(div_on)
+        self.print_footer()
+
+    def print_header(self):
+        """Print header for the table."""
+        # Column names row.
+        str_hdr = self.__row_str(self.table.columns)
 
         # Max and weight rows. These are filled only for evaluation columns.
         i = 0
@@ -175,9 +190,14 @@ class TableWriter(object):
             else:
                 max_row.append('')
                 weight_row.append('')
-        str_tbl += self.__row_str(max_row) + self.__row_str(weight_row)
-        str_tbl += self.__div_row()
+        str_hdr += self.__row_str(max_row) + self.__row_str(weight_row)
+        str_hdr += self.__div_row()
+        print(str_hdr, end='')
 
+    def print_rows(self, div_on=None):
+        """Print the data rows with divisors between rows for which one of the
+        columns in div_on has different values."""
+        str_tbl = ''
         if div_on:
             prevs = [self.table.students[0][cname] for cname in div_on]
         for student in self.table.students:
@@ -190,13 +210,17 @@ class TableWriter(object):
                 prevs = curs
             str_tbl += self.__row_str(
                     (student[cname] for cname in self.table.columns))
+        print(str_tbl, end='')
 
+    def print_footer(self):
+        """Print footer for the table."""
+        str_ftr = ''
         if self.table.footers:
-            str_tbl += self.__div_row()
+            str_ftr += self.__div_row()
             for footer in self.table.footers:
-                str_tbl += self.__row_str((footer[cname] for cname in
+                str_ftr += self.__row_str((footer[cname] for cname in
                     self.table.columns))
-        print(str_tbl)
+        print(str_ftr, end='')
 
     def __set_columns_width(self):
         """Find the width of each column. The width of a column is the maximum
@@ -259,5 +283,11 @@ if __name__ == '__main__':
     grades_tbl.compute_cumul()
     grades_tbl.compute_mean()
     writer.printt()
+    #print()
+    #print()
+    #writer.print_footer()
+    #print()
+    #print()
+    #writer.print_header()
 
 
