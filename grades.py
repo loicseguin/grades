@@ -254,7 +254,7 @@ class TableWriter(object):
         self.precision = 2
         self.column_widths = []
 
-    def printt(self, div_on=('Group',)):
+    def printt(self, div_on=None):
         """Print the table.
 
         Parameters
