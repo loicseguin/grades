@@ -1,26 +1,93 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
+"""grades
+
+This module provides classes that can parse and process student grades stored
+in plain text tables. The table has the following form.
+
+| Header 1  | Header 2 | Eval 1  | Eval 2  |
+|           |          | max1    | max2    |
+|           |          | weight1 | weight2 |
+|-----------+----------+---------+---------|
+| A Name    | Info     | 45      |  56     |
+| An Other  | More Inf | 57      | 43      |
+
+Evaluations should have a name that starts with 'Test', 'Exam', 'Midterm',
+'Eval' or 'Quiz' in order to be recognized as evaluations. Each evaluation has
+a maximum grade and a weight towards the final grade. If a maximum is not
+given, a value of 100 is assumed. If a weight is not given, a value of 0 is
+assumed.
+
+The methods offered by GradesTable can compute the mean for each evaluation,
+the final grade of each student as well as the class mean for each evaluation.
+The class mean uses one of the columns to group the students.
+
+
+Copyright (c) 2012, Loïc Séguin-C.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+ - Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+ - Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+ - Neither the name of the <ORGANIZATION> nor the names of its contributors may
+   be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+"""
 
 from __future__ import print_function # For Python 2 compatibility.
 
 
 __author__ = "Loïc Séguin-C."
-__license__ = "BSD"
+__license__ = "BSD Simplified"
 __version__ = "0.1"
 
 
 import sys
 
-def len(iterable):
+
+def _parse_line(line):
+    """Read a line and split it into tokens. This is a generator that
+    yields the tokens. A typical line looks like '| A Name | info | 78 | 90|'
+    and gets parsed into the following tokens: 'A Name', 'info', 78, 90."""
+    for entry in line.strip('|').split('|'):
+        yield entry.strip()
+
+
+def _to_float(val, default=100.):
+    """Convert string val into float with fallback value default."""
+    try:
+        return float(val)
+    except ValueError:
+        return default
+
+
+def _len(iterable):
     """Redefine len so it will be able to work with non-ASCII characters.
-    This function is taken from http://foutaise.org/code/texttable/texttable.
+    This function is adapted from http://foutaise.org/code/texttable/texttable.
     Works with Python 2 and Python 3.
     """
     if not isinstance(iterable, str):
         return iterable.__len__()
     try:
         return len(unicode(iterable, 'utf'))
-    except:
+    except NameError:
         return iterable.__len__()
 
 
@@ -66,20 +133,20 @@ class GradesTable(object):
         self.students = []
         self.footers = []
         # The first three lines contain information about the evaluations.
-        self.columns = [entry for entry in self.__parse_line(data[0])
+        self.columns = [entry for entry in _parse_line(data[0])
                         if not entry.startswith('-')]
         # Try to determine which column is an evaluation.  Evaluations are
         # stored as dictionaries with keys name, max_grade and weight.
         eval_colnum = [i for i, cname in enumerate(self.columns) if
                        cname.upper().startswith(('TEST', 'EXAM', 'MIDTERM',
-                       'QUIZ', 'FINAL'))]
+                       'QUIZ', 'FINAL', 'EVAL'))]
         eval_names = [self.columns[i] for i in eval_colnum]
         self.num_columns = list(eval_names)
-        eval_max = [self.__to_float(entry) for i, entry in
-                    enumerate(self.__parse_line(data[1]))
+        eval_max = [_to_float(entry) for i, entry in
+                    enumerate(_parse_line(data[1]))
                     if i in eval_colnum]
-        eval_weight = [self.__to_float(entry, 0.) for i, entry in
-                       enumerate(self.__parse_line(data[2]))
+        eval_weight = [_to_float(entry, 0.) for i, entry in
+                       enumerate(_parse_line(data[2]))
                        if i in eval_colnum]
         self.evals = [dict((('name', name), ('max_grade', maxg),
                            ('weight', weight))) for name, maxg, weight
@@ -93,33 +160,18 @@ class GradesTable(object):
                 # Separator line in the table.
                 continue
             keyval = []
-            for i, entry in enumerate(self.__parse_line(line)):
+            for i, entry in enumerate(_parse_line(line)):
                 if i >= len(self.columns) or entry.startswith('--'):
                     break
                 if self.columns[i] in self.eval_names:
                     keyval.append((self.columns[i],
-                        self.__to_float(entry, entry)))
+                        _to_float(entry, entry)))
                 else:
                     keyval.append((self.columns[i], entry))
 
             if keyval:
                 self.students.append(dict(keyval))
 
-    def __parse_line(self, line):
-        """Read a line and split it into tokens. This is a generator that
-        yields the tokens. A typical line looks like
-            | Some Name | Extra info | 78 | 89 | 90|
-        and gets parsed into the following list:
-            ['Some Name', 'Extra info', 78, 89, 90]."""
-        for entry in line.strip('|').split('|'):
-            yield entry.strip()
-
-    def __to_float(self, val, default=100.):
-        """Convert string val into float with fallback value default."""
-        try:
-            return float(val)
-        except ValueError:
-            return default
 
     def compute_cumul(self):
         """Calculate the weighted mean for each student and add that result
@@ -153,6 +205,21 @@ class GradesTable(object):
         self.footers.append(mean)
 
     def compute_grouped_mean(self, group_by='Group'):
+        """Calculate grouped means. The values for each evaluation and computed
+        columns are added as footers to the table.
+
+        Input
+        -----
+        group_by:
+           A column name to be used to group students. The mean is calculated
+           for groups of students that have the same value for the column
+           group_by.
+           
+        Raises
+        ------
+        ValueError:
+            This exception is raised if group_by is not a column name."""
+
         if not group_by in self.columns:
             raise ValueError(group_by + " is not a valid column name.")
         groups = {}
@@ -178,8 +245,9 @@ class TableWriter(object):
         self.padding_right = 1
         self.table = grade_table
         self.precision = 2
+        self.column_widths = []
 
-    def printt(self, div_on=['Group']):
+    def printt(self, div_on=('Group',)):
         """Print the table. Horizontal divisions will be written between rows
         for which one of the values in the div_on iterable container are
         different. div_on should contain column names."""
@@ -241,10 +309,11 @@ class TableWriter(object):
         """Find the width of each column. The width of a column is the maximum
         width of an entry in this column plus the padding."""
         self.column_widths = []
+        rows = self.table.students + self.table.footers
         for column in self.table.columns:
             col = [column]
             if column in self.table.num_columns:
-                for row in self.table.students + self.table.footers:
+                for row in rows:
                     if isinstance(row[column], (float, int)):
                         # Numerical data will be formatted to self.precision.
                         # Calculate the width of the formatted numbers.
@@ -254,9 +323,9 @@ class TableWriter(object):
                         # as 'ABS' for absences.
                         col += [row[column]]
             else:
-                col += [student[column] for student in self.table.students]
+                col += [row[column] for row in rows]
             self.column_widths.append(self.padding_left + self.padding_right +
-                                      max(len(str(row)) for row in col))
+                                      max(_len(str(row)) for row in col))
 
     def __row_str(self, row):
         """Create a string representation for a row in the table. The columns
@@ -268,14 +337,14 @@ class TableWriter(object):
                 and isinstance(rowelmt, (float, int))):
                 str_elmt = format(rowelmt, '.%df' % self.precision)
                 padded.append(
-                        ' ' * (width - len(str_elmt) - self.padding_right)
+                        ' ' * (width - _len(str_elmt) - self.padding_right)
                         + str_elmt + ' ' * self.padding_right)
             elif isinstance(rowelmt, (float, int)):
                 padded.append(' ' * self.padding_left + str(rowelmt)
-                        + ' ' * (width - len(str(rowelmt)) - self.padding_left))
+                    + ' ' * (width - _len(str(rowelmt)) - self.padding_left))
             else:
                 padded.append(' ' * self.padding_left + str(rowelmt)
-                        + ' ' * (width - len(rowelmt) - self.padding_left))
+                        + ' ' * (width - _len(rowelmt) - self.padding_left))
         return '|' + '|'.join(padded) + '|\n'
 
     def __div_row(self):
