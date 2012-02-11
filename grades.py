@@ -93,6 +93,15 @@ class GradesFile(object):
         if len(tablelines) < 3:
             raise StandardError('Error: Malformed table in file ' + filename)
         self.table = GradesTable(tablelines)
+        self.writer = TableWriter(self.table)
+
+    def print_file(self):
+        """Print the file and the table."""
+        for line in self.header:
+            print(line)
+        self.writer.printt()
+        for line in self.footer:
+            print(line)
 
 
 class GradesTable(object):
@@ -379,15 +388,15 @@ if __name__ == '__main__':
 | Suzanne Tremblay  | 302   | 67     | 78     | 80      |           |
 | Albert Prévert    | 302   |        | ABS    | 78      |           |
 | -- Some stuff--   | This row | should | be |    | ignored |"""
-    grades_tbl = GradesTable(test_data.split('\n'))
-    writer = TableWriter(grades_tbl)
-    grades_tbl.compute_cumul()
-    grades_tbl.compute_mean()
-    grades_tbl.compute_grouped_mean()
-    writer.printt()
-    #print()
-    #print()
-    #writer.print_footer()
-    #print()
-    #print()
-    #writer.print_header()
+    #grades_tbl = GradesTable(test_data.split('\n'))
+    #writer = TableWriter(grades_tbl)
+    #grades_tbl.compute_cumul()
+    #grades_tbl.compute_mean()
+    #grades_tbl.compute_grouped_mean()
+    #writer.printt()
+    gfile = GradesFile('some_grades.org')
+    gfile.table.compute_cumul()
+    gfile.table.compute_grouped_mean()
+
+    gfile.print_file()
+    
