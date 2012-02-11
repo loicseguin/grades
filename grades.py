@@ -1,7 +1,25 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+__author__ = "Loïc Séguin-C."
+__license__ = "BSD"
+__version__ = "0.1"
+
+
 import sys
+
+def len(iterable):
+    """Redefine len so it will be able to work with non-ASCII characters.
+    This function is taken from http://foutaise.org/code/texttable/texttable.
+    Works with Python 2 and Python 3.
+    """
+    if not isinstance(iterable, str):
+        return iterable.__len__()
+    try:
+        return len(unicode(iterable, 'utf'))
+    except:
+        return iterable.__len__()
+
 
 class GradesFile(object):
     """A GradesFile contains one table of grades. The GradesFile
@@ -179,12 +197,12 @@ class TableWriter(object):
             col = [column]
             if column in self.num_columns:
                 for student in self.num_rows:
-                    if not isinstance(student[column], str):
+                    if isinstance(student[column], (float, int)):
                         col += [format(student[column], '.%df'%self.precision)]
                     else:
                         col += [student[column]]
             else:
-                col += [str(student[column]) for student in self.table.students]
+                col += [student[column] for student in self.table.students]
             self.column_widths.append(
                 self.padding_left + self.padding_right +
                 max(len(row) for row in col))
@@ -196,14 +214,17 @@ class TableWriter(object):
         for i, rowelmt in enumerate(row):
             width = self.column_widths[i]
             if (self.table.columns[i] in self.num_columns
-                and not isinstance(rowelmt, str)):
+                and isinstance(rowelmt, (float, int))):
                 str_elmt = format(rowelmt, '.%df' % self.precision)
                 padded.append(
                         ' ' * (width - len(str_elmt) - self.padding_right)
                         + str_elmt + ' ' * self.padding_right)
-            else:
+            elif isinstance(rowelmt, (float, int)):
                 padded.append(' ' * self.padding_left + str(rowelmt)
                         + ' ' * (width - len(str(rowelmt)) - self.padding_left))
+            else:
+                padded.append(' ' * self.padding_left + str(rowelmt)
+                        + ' ' * (width - len(rowelmt) - self.padding_left))
         return '|' + '|'.join(padded) + '|\n'
 
     def __div_row(self):
