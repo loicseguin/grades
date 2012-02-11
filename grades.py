@@ -202,10 +202,10 @@ class GradesTable(object):
             if column in self.eval_names or column.startswith('--'):
                 nb_students = sum((1 for student in students if
                                   isinstance(student[column], (float, int))))
-                s = sum((student[column] for student in students
+                sumg = sum((student[column] for student in students
                          if isinstance(student[column], (float, int))))
                 if nb_students:
-                    mean[column] = s / nb_students
+                    mean[column] = sumg / nb_students
         self.footers.append(mean)
 
     def compute_grouped_mean(self, group_by='Group'):
@@ -399,4 +399,3 @@ if __name__ == '__main__':
     gfile.table.compute_grouped_mean()
 
     gfile.print_file()
-    
