@@ -91,15 +91,15 @@ class GradesFile(object):
                 # Reading a table.
                 tablelines.append(line)
         if len(tablelines) < 3:
-            raise StandardError('Error: Malformed table in file ' + filename)
+            raise Exception('Malformed table in file ' + filename)
         self.table = GradesTable(tablelines)
         self.writer = TableWriter(self.table)
 
-    def print_file(self):
+    def print_file(self, div_on=None):
         """Print the file and the table."""
         for line in self.header:
             print(line)
-        self.writer.printt()
+        self.writer.printt(div_on=div_on)
         for line in self.footer:
             print(line)
 
