@@ -133,22 +133,37 @@ class GradesTable(object):
         self.columns.append('-- Cumul --')
         self.num_columns += ['-- Cumul --']
 
-    def compute_mean(self):
+    def compute_mean(self, students=None, row_name='Moyenne'):
         """Calculate the class mean for each evaluation and add the results to
         a new row at the bottom of the table. Blanks in the table are not taken
         into account, i.e., a blank does not count as a zero."""
         mean = {}
-        mean[self.columns[0]] = '-- Moyenne --'
+        mean[self.columns[0]] = '-- ' + row_name + ' --'
+        if not students:
+            students = self.students
         for column in self.columns[1:]:
             mean[column] = ''
             if column in self.eval_names or column.startswith('--'):
-                nb_students = sum((1 for student in self.students if
+                nb_students = sum((1 for student in students if
                                   isinstance(student[column], (float, int))))
-                s = sum((student[column] for student in self.students
+                s = sum((student[column] for student in students
                          if isinstance(student[column], (float, int))))
                 if nb_students:
                     mean[column] = s / nb_students
         self.footers.append(mean)
+
+    def compute_grouped_mean(self, group_by='Group'):
+        if not group_by in self.columns:
+            raise ValueError(group_by + " is not a valid column name.")
+        groups = {}
+        for student in self.students:
+            if not student[group_by] in groups:
+                groups[student[group_by]] = [student]
+            else:
+                groups[student[group_by]].append(student)
+        for group in groups:
+            self.compute_mean(students=groups[group],
+                              row_name='Moyenne ' + group)
 
 
 class TableWriter(object):
@@ -275,13 +290,14 @@ if __name__ == '__main__':
 |                   |   | 10     | 10     | 30      |           |
 |----------------------+--------+--------+---------+-----------|
 | Bob Arthur        | 301   | 23     | 45     |         |           |
-| Suzanne Tremblay  | 302   | 67     | 78     |         |           |
+| Suzanne Tremblay  | 302   | 67     | 78     | 80      |           |
 | Albert Prévert    | 302   |        | ABS    | 78      |           |
 | -- Some stuff--   | This row | should | be |    | ignored |"""
     grades_tbl = GradesTable(test_data.split('\n'))
     writer = TableWriter(grades_tbl)
     grades_tbl.compute_cumul()
     grades_tbl.compute_mean()
+    grades_tbl.compute_grouped_mean()
     writer.printt()
     #print()
     #print()
