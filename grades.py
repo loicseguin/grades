@@ -22,50 +22,23 @@ The methods offered by GradesTable can compute the mean for each evaluation,
 the final grade of each student as well as the class mean for each evaluation.
 The class mean uses one of the columns to group the students.
 
-
-Copyright (c) 2012, Loïc Séguin-C.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
- - Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
- - Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
- - Neither the name of the <ORGANIZATION> nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """
 
-from __future__ import print_function # For Python 2 compatibility.
+
+from __future__ import print_function  # For Python 2 compatibility.
 
 
-__author__ = "Loïc Séguin-C."
-__license__ = "BSD Simplified"
+__author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
+__license__ = "BSD"
 __version__ = "0.1"
-
-
-import sys
 
 
 def _parse_line(line):
     """Read a line and split it into tokens. This is a generator that
     yields the tokens. A typical line looks like '| A Name | info | 78 | 90|'
-    and gets parsed into the following tokens: 'A Name', 'info', 78, 90."""
+    and gets parsed into the following tokens: 'A Name', 'info', 78, 90.
+
+    """
     for entry in line.strip('|').split('|'):
         yield entry.strip()
 
@@ -82,6 +55,7 @@ def _len(iterable):
     """Redefine len so it will be able to work with non-ASCII characters.
     This function is adapted from http://foutaise.org/code/texttable/texttable.
     Works with Python 2 and Python 3.
+
     """
     if not isinstance(iterable, str):
         return iterable.__len__()
@@ -94,7 +68,9 @@ def _len(iterable):
 class GradesFile(object):
     """A GradesFile contains one table of grades. The GradesFile
     object is initialized with a filename. It takes care of safeguarding the
-    content of the file before and after the table."""
+    content of the file before and after the table.
+
+    """
     def __init__(self, filename):
         """Initialize the GradesFile object by parsing filename."""
         object.__init__(self)
@@ -115,17 +91,24 @@ class GradesFile(object):
                 # Reading a table.
                 tablelines.append(line)
         if len(tablelines) < 3:
-            sys.stderr.write('Error: Malformed table in file ' + filename)
-            sys.exit(1)
+            raise StandardError('Error: Malformed table in file ' + filename)
         self.table = GradesTable(tablelines)
 
 
 class GradesTable(object):
     """A GradesTable contains all the data in a table and can perform
-    calculations and modify the table to include the results."""
+    calculations and modify the table to include the results.
+
+    """
     def __init__(self, data):
-        """To instanciate a new GradesTable, one must provide data in the form
-        of a list of lines."""
+        """Instanciate a new GradesTable.
+
+        Input
+        -----
+        data: list
+           A list of all the rows in the table.
+
+        """
         object.__init__(self)
         self.columns = []
         self.nb_col_headers = 3
@@ -172,10 +155,11 @@ class GradesTable(object):
             if keyval:
                 self.students.append(dict(keyval))
 
-
     def compute_cumul(self):
         """Calculate the weighted mean for each student and add that result
-        in a new column at the end of the table."""
+        in a new column at the end of the table.
+
+        """
         for student in self.students:
             cumul = sum((student[evalu['name']] * evalu['weight'] /
                          evalu['max_grade']
@@ -186,9 +170,20 @@ class GradesTable(object):
         self.num_columns += ['-- Cumul --']
 
     def compute_mean(self, students=None, row_name='Moyenne'):
-        """Calculate the class mean for each evaluation and add the results to
+        """Calculate the mean for each evaluation and add the results to
         a new row at the bottom of the table. Blanks in the table are not taken
-        into account, i.e., a blank does not count as a zero."""
+        into account, i.e., a blank does not count as a zero.
+
+        Input
+        -----
+        students: iterable container
+           Container for the students to include in the calculation. This list
+           should be a subset of the students in the table.
+
+        row_name: string
+           Name to use for the new footer row that contains the mean values.
+
+        """
         mean = {}
         mean[self.columns[0]] = '-- ' + row_name + ' --'
         if not students:
@@ -208,18 +203,19 @@ class GradesTable(object):
         """Calculate grouped means. The values for each evaluation and computed
         columns are added as footers to the table.
 
-        Input
-        -----
-        group_by:
+        Parameters
+        ----------
+        group_by: string
            A column name to be used to group students. The mean is calculated
            for groups of students that have the same value for the column
            group_by.
-           
+
         Raises
         ------
         ValueError:
-            This exception is raised if group_by is not a column name."""
+            This exception is raised if group_by is not a column name.
 
+        """
         if not group_by in self.columns:
             raise ValueError(group_by + " is not a valid column name.")
         groups = {}
@@ -238,7 +234,9 @@ class TableWriter(object):
     def __init__(self, grade_table):
         """Initialize the writer. The default parameters for a writer are to
         use a minimum column width of 5, left and right padding of 1 and a
-        precision for floating point values of 2."""
+        precision for floating point values of 2.
+
+        """
         object.__init__(self)
         self.min_width = 5
         self.padding_left = 1
@@ -248,16 +246,23 @@ class TableWriter(object):
         self.column_widths = []
 
     def printt(self, div_on=('Group',)):
-        """Print the table. Horizontal divisions will be written between rows
-        for which one of the values in the div_on iterable container are
-        different. div_on should contain column names."""
+        """Print the table.
+
+        Parameters
+        ----------
+        div_on: tuple
+           Horizontal divisions will be written between rows for which one of
+           the values in the div_on tuple are different. div_on should contain
+           column names.
+
+        """
         self.__set_columns_width()
         self.print_header()
         self.print_rows(div_on)
         self.print_footer()
 
     def print_header(self):
-        """Print header for the table."""
+        """Print headers for the table."""
         # Column names row.
         str_hdr = self.__row_str(self.table.columns)
 
@@ -278,8 +283,16 @@ class TableWriter(object):
         print(str_hdr, end='')
 
     def print_rows(self, div_on=None):
-        """Print the data rows with divisors between rows for which one of the
-        columns in div_on has different values."""
+        """Print the data rows.
+
+        Parameters
+        ----------
+        div_on: tuple
+           Horizontal divisions will be written between rows for which one of
+           the values in the div_on tuple are different. div_on should contain
+           column names.
+
+        """
         str_tbl = ''
         if div_on:
             prevs = [self.table.students[0][cname] for cname in div_on]
@@ -307,7 +320,9 @@ class TableWriter(object):
 
     def __set_columns_width(self):
         """Find the width of each column. The width of a column is the maximum
-        width of an entry in this column plus the padding."""
+        width of an entry in this column plus the padding.
+
+        """
         self.column_widths = []
         rows = self.table.students + self.table.footers
         for column in self.table.columns:
@@ -317,7 +332,7 @@ class TableWriter(object):
                     if isinstance(row[column], (float, int)):
                         # Numerical data will be formatted to self.precision.
                         # Calculate the width of the formatted numbers.
-                        col += [format(row[column], '.%df'%self.precision)]
+                        col += [format(row[column], '.%df' % self.precision)]
                     else:
                         # Allow some cells to contain non numerical data such
                         # as 'ABS' for absences.
@@ -329,7 +344,9 @@ class TableWriter(object):
 
     def __row_str(self, row):
         """Create a string representation for a row in the table. The columns
-        corresponding to evaluations have their numbers justified right."""
+        corresponding to evaluations have their numbers justified right.
+
+        """
         padded = []
         for i, rowelmt in enumerate(row):
             width = self.column_widths[i]
@@ -374,5 +391,3 @@ if __name__ == '__main__':
     #print()
     #print()
     #writer.print_header()
-
-
