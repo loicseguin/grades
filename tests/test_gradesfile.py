@@ -135,11 +135,13 @@ lines and columns.
 """
 
     def test_grouped_cumul_div(self):
+        """Read the file and print it with the cumulative grade for each
+        student as well as with divisions between groups."""
         fd, fname = tempfile.mkstemp()
         tfile = os.fdopen(fd, 'w')
         tfile.write(self.file_str)
         tfile.close()
-        gfile = grades.GradesFile(fname)
+        gfile = grades.classes.GradesFile(fname)
         os.unlink(fname)
         gfile.table.compute_cumul()
         gfile.table.compute_grouped_mean('Group')
@@ -150,11 +152,13 @@ lines and columns.
         assert_equal(mystdout.getvalue(), self.output_str)
 
     def test_grouped(self):
+        """Calculate the grouped mean, grouping the students by the 'Group'
+        column."""
         fd, fname = tempfile.mkstemp()
         tfile = os.fdopen(fd, 'w')
         tfile.write(self.file_str)
         tfile.close()
-        gfile = grades.GradesFile(fname)
+        gfile = grades.classes.GradesFile(fname)
         os.unlink(fname)
         gfile.table.compute_grouped_mean('Group')
         old_stdout = sys.stdout
@@ -164,19 +168,22 @@ lines and columns.
         assert_equal(mystdout.getvalue(), self.output_str2)
 
     def test_malformed(self):
+        """If the table is too short, an exception should be raised."""
         fd, fname = tempfile.mkstemp()
         tfile = os.fdopen(fd, 'w')
         tfile.write(self.file_str2)
         tfile.close()
-        assert_raises(Exception, grades.GradesFile, fname)
+        assert_raises(Exception, grades.classes.GradesFile, fname)
         os.unlink(fname)
         
     def test_mean_div(self):
+        """Calculate the mean and print the table with divisions between groups
+        and test 1 results."""
         fd, fname = tempfile.mkstemp()
         tfile = os.fdopen(fd, 'w')
         tfile.write(self.file_str)
         tfile.close()
-        gfile = grades.GradesFile(fname)
+        gfile = grades.classes.GradesFile(fname)
         os.unlink(fname)
         gfile.table.compute_mean()
         old_stdout = sys.stdout

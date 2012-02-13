@@ -70,13 +70,15 @@ class GradesFile(object):
     content of the file before and after the table.
 
     """
-    def __init__(self, filename):
+    def __init__(self, fileh):
         """Initialize the GradesFile object by parsing filename."""
         object.__init__(self)
         self.header = []
         self.footer = []
         tablelines = []
-        lines = [line for line in open(filename, 'r')]
+        if not hasattr(fileh, 'read'):
+            fileh = open(fileh, 'r')
+        lines = [line for line in fileh]
         for line in lines:
             line = line.strip()
             if not line.startswith('|'):
@@ -90,7 +92,7 @@ class GradesFile(object):
                 # Reading a table.
                 tablelines.append(line)
         if len(tablelines) < 3:
-            raise Exception('Malformed table in file ' + filename)
+            raise Exception('Malformed table in file ' + fileh.name)
         self.table = GradesTable(tablelines)
         self.writer = TableWriter(self.table)
 
