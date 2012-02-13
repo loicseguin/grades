@@ -32,6 +32,9 @@ __license__ = "BSD"
 __version__ = "0.1"
 
 
+from copy import deepcopy
+
+
 def _parse_line(line):
     """Read a line and split it into tokens. This is a generator that
     yields the tokens. A typical line looks like '| A Name | info | 78 | 90|'
@@ -110,7 +113,7 @@ class GradesTable(object):
     calculations and modify the table to include the results.
 
     """
-    def __init__(self, data):
+    def __init__(self, data=None):
         """Instanciate a new GradesTable.
 
         Input
@@ -123,8 +126,30 @@ class GradesTable(object):
         self.columns = []
         self.nb_col_headers = 3
         self.evals = []
+        self.eval_names = []
         self.students = []
         self.footers = []
+        self.num_columns = []
+
+        if isinstance(data, GradesTable):
+            self = deepcopy(data)
+        elif data:
+            self.__parse_data(data)
+
+    def __getitem__(self, aslice):
+        atable = GradesTable()
+        atable.columns = deepcopy(self.columns)
+        atable.nb_col_headers = self.nb_col_headers
+        atable.evals = deepcopy(self.evals)
+        atable.eval_names = deepcopy(self.eval_names)
+        atable.num_columns = self.num_columns
+        if isinstance(aslice, slice):
+            atable.students = self.students[aslice]
+        else:
+            atable.students = [self.students[aslice]]
+        return atable
+
+    def __parse_data(self, data):
         # The first three lines contain information about the evaluations.
         self.columns = [entry for entry in _parse_line(data[0])
                         if not entry.startswith('-')]
