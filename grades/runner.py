@@ -39,7 +39,7 @@ def run():
     if args.mean:
         gfile.table.compute_mean()
     if args.grouped:
-        compute_grouped_mean(group_by=grouped)
+        gfile.table.compute_grouped_mean(group_by=args.grouped)
     gfile.print_file(div_on=args.div)
 
 

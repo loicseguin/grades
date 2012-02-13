@@ -236,7 +236,7 @@ class GradesTable(object):
                 groups[student[group_by]].append(student)
         for group in groups:
             self.compute_mean(students=groups[group],
-                              row_name='Moyenne ' + group)
+                              row_name='Moyenne ' + str(group))
 
 
 class TableWriter(object):
@@ -305,6 +305,9 @@ class TableWriter(object):
         """
         str_tbl = ''
         if div_on:
+            for cname in div_on:
+                if not cname in self.table.columns:
+                    raise ValueError(cname + " is not a valid column name.")
             prevs = [self.table.students[0][cname] for cname in div_on]
         for student in self.table.students:
             if div_on:

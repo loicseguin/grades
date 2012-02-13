@@ -10,11 +10,8 @@ __license__ = "BSD"
 __version__ = "0.1"
 
 
-import sys
-sys.path.append('..')
 import grades
 
 
-
 if __name__ == '__main__':
-    runner.run()
+    grades.runner.run()

@@ -1,2 +1,2 @@
-from .classes import *
-from .runner import *
+from . import classes
+from . import runner
