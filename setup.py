@@ -26,9 +26,5 @@ setup(
         'Topic :: Text Processing',
         'Topic :: Utilities'
         ],
-    long_description = """For managing student grades, most teachers use
-    spreadsheet tools. With these tools, it is hard to maintain grades in plain
-    text files that are easily readable by humans. The goal of grades is to let
-    teachers manage their students' grade in plain text file while providing
-    tools to parse the file and calculate students and group means."""
+    long_description = open('README.rst', 'r').read()
 )
