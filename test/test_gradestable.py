@@ -9,7 +9,7 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal
 try:
     import cStringIO as io
 except ImportError:
@@ -20,8 +20,11 @@ except ImportError:
 import sys
 import grades
 
+
 class TestGrablesTable(object):
-    in_str = """| Nom               | Group | Test 1 | Test 2 | Midterm |
+    """Test the functionalities of the GradesTable object."""
+    in_str = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
 |                   |       |  70.00 | 100.00 |  100.00 |
 |                   |       |  10.00 |  10.00 |   30.00 |
 |-------------------+-------+--------+--------+---------+
@@ -46,7 +49,8 @@ class TestGrablesTable(object):
 | Eleonor Brochu | 302   |  67.00 |  78.00 |   80.00 |
 """
 
-    output_str1 = """| Nom              | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
+    output_str1 = """\
+| Nom              | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
 |                  |       |  70.00 | 100.00 |  100.00 |             |
 |                  |       |  10.00 |  10.00 |   30.00 |             |
 |------------------+-------+--------+--------+---------+-------------|
@@ -55,7 +59,8 @@ class TestGrablesTable(object):
 | Albert Prévert   | 301   |        | ABS    |   78.00 |       23.40 |
 """
 
-    output_str2 = """| Nom               | Group | Test 1 | Test 2 | Midterm |
+    output_str2 = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
 |                   |       |  70.00 | 100.00 |  100.00 |
 |                   |       |  10.00 |  10.00 |   30.00 |
 |-------------------+-------+--------+--------+---------|
@@ -105,4 +110,3 @@ class TestGrablesTable(object):
         writer.printt(div_on=('Group',))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str2)
-

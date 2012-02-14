@@ -22,7 +22,9 @@ import sys
 import tempfile
 import grades
 
-class TestReadAndPrint(object):
+
+class TestGradesFile(object):
+    """Test the functionalities of the GradesFile class."""
     file_str = """* Grades for a fictive class
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
@@ -137,8 +139,8 @@ lines and columns.
     def test_grouped_cumul_div(self):
         """Read the file and print it with the cumulative grade for each
         student as well as with divisions between groups."""
-        fd, fname = tempfile.mkstemp()
-        tfile = os.fdopen(fd, 'w')
+        fdesc, fname = tempfile.mkstemp()
+        tfile = os.fdopen(fdesc, 'w')
         tfile.write(self.file_str)
         tfile.close()
         gfile = grades.classes.GradesFile(fname)
@@ -154,8 +156,8 @@ lines and columns.
     def test_grouped(self):
         """Calculate the grouped mean, grouping the students by the 'Group'
         column."""
-        fd, fname = tempfile.mkstemp()
-        tfile = os.fdopen(fd, 'w')
+        fdesc, fname = tempfile.mkstemp()
+        tfile = os.fdopen(fdesc, 'w')
         tfile.write(self.file_str)
         tfile.close()
         gfile = grades.classes.GradesFile(fname)
@@ -169,18 +171,18 @@ lines and columns.
 
     def test_malformed(self):
         """If the table is too short, an exception should be raised."""
-        fd, fname = tempfile.mkstemp()
-        tfile = os.fdopen(fd, 'w')
+        fdesc, fname = tempfile.mkstemp()
+        tfile = os.fdopen(fdesc, 'w')
         tfile.write(self.file_str2)
         tfile.close()
         assert_raises(Exception, grades.classes.GradesFile, fname)
         os.unlink(fname)
-        
+
     def test_mean_div(self):
         """Calculate the mean and print the table with divisions between groups
         and test 1 results."""
-        fd, fname = tempfile.mkstemp()
-        tfile = os.fdopen(fd, 'w')
+        fdesc, fname = tempfile.mkstemp()
+        tfile = os.fdopen(fdesc, 'w')
         tfile.write(self.file_str)
         tfile.close()
         gfile = grades.classes.GradesFile(fname)
@@ -191,4 +193,3 @@ lines and columns.
         gfile.print_file(div_on=('Group', 'Test 1'))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str3)
-

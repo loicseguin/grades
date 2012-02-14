@@ -24,7 +24,7 @@ The class mean uses one of the columns to group the students.
 """
 
 
-from __future__ import print_function  # For Python 2 compatibility.
+from __future__ import print_function
 
 
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
@@ -137,6 +137,12 @@ class GradesTable(object):
             self.__parse_data(data)
 
     def __getitem__(self, aslice):
+        """A table can be indexed or sliced. The slicing mechanism work on rows
+        of students. A new table is created that contains only the students
+        included in ``aslice``. All the columns and their headers are copied
+        into the new table.
+
+        """
         atable = GradesTable()
         atable.columns = deepcopy(self.columns)
         atable.nb_col_headers = self.nb_col_headers
@@ -150,6 +156,14 @@ class GradesTable(object):
         return atable
 
     def __parse_data(self, data):
+        """Parse lines into table row.
+
+        Input
+        -----
+        data: iterable
+           A list of all the rows in the table.
+
+        """
         # The first three lines contain information about the evaluations.
         self.columns = [entry for entry in _parse_line(data[0])
                         if not entry.startswith('-')]
@@ -409,22 +423,24 @@ class TableWriter(object):
 
 
 if __name__ == '__main__':
-    test_data = """| Nom    |Group | Test 1 | Test 2 | Midterm | --Cumul-- |
-|                   |   | 70     | 100    |     |           |
-|                   |   | 10     | 10     | 30      |           |
-|----------------------+--------+--------+---------+-----------|
-| Bob Arthur        | 301   | 23     | 45     |         |           |
-| Suzanne Tremblay  | 302   | 67     | 78     | 80      |           |
-| Albert Prévert    | 302   |        | ABS    | 78      |           |
-| -- Some stuff--   | This row | should | be |    | ignored |"""
-    #grades_tbl = GradesTable(test_data.split('\n'))
-    #writer = TableWriter(grades_tbl)
-    #grades_tbl.compute_cumul()
-    #grades_tbl.compute_mean()
-    #grades_tbl.compute_grouped_mean()
-    #writer.printt()
-    gfile = GradesFile('some_grades.org')
+    test_data = """\
+| Nom               |Group | Test 1 | Test 2 | Midterm | --Cumul-- |
+|                   |      | 70     | 100    |         |           |
+|                   |      | 10     | 10     | 30      |           |
+|-------------------+------+--------+--------+---------+-----------|
+| Bob Arthur        | 301  | 23     | 45     |         |           |
+| Suzanne Tremblay  | 302  | 67     | 78     | 80      |           |
+| Albert Prévert    | 302  |        | ABS    | 78      |           |
+| -- Some stuff--   | This row | should | be |         | ignored   |
+"""
+    grades_tbl = GradesTable(test_data.strip().split('\n'))
+    writer = TableWriter(grades_tbl)
+    grades_tbl.compute_cumul()
+    grades_tbl.compute_mean()
+    grades_tbl.compute_grouped_mean()
+    writer.printt()
+
+    gfile = GradesFile('examples/math101.txt')
     gfile.table.compute_cumul()
     gfile.table.compute_grouped_mean()
-
     gfile.print_file()

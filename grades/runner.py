@@ -1,5 +1,9 @@
 #-*- coding: utf-8 -*-
-"""runner
+"""
+runner
+======
+
+Module for parsing command line arguments and running the appropriate command.
 
 """
 
@@ -12,7 +16,14 @@ __version__ = "0.1"
 import argparse
 from .classes import GradesFile
 
+
 def run():
+    """Make the runner run.
+
+    Arguments from ``sys.argv`` are processed and are
+    used to print the requested output.
+
+    """
     clparser = argparse.ArgumentParser(
         description='A grade management tool with plain text tables storage.')
     clparser.add_argument('-v', '--version', action='version',
@@ -45,5 +56,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-
-
