@@ -280,6 +280,7 @@ class GradesTable(object):
 
 class TableWriter(object):
     """A TableWriter takes care of formatting and printing a GradesTable."""
+
     def __init__(self, grade_table):
         """Initialize the writer. The default parameters for a writer are to
         use a minimum column width of 5, left and right padding of 1 and a
@@ -293,8 +294,9 @@ class TableWriter(object):
         self.table = grade_table
         self.precision = 2
         self.column_widths = []
+        self.cols_to_print = None
 
-    def printt(self, div_on=None):
+    def printt(self, div_on=None, columns=None):
         """Print the table.
 
         Parameters
@@ -304,7 +306,12 @@ class TableWriter(object):
            the values in the div_on tuple are different. div_on should contain
            column names.
 
+        columns: iterable
+           List of columns to print. By default, this is None which prints all
+           the columns.
+
         """
+        self.cols_to_print = columns
         self.__set_columns_width()
         self.print_header()
         self.print_rows(div_on)
@@ -401,6 +408,9 @@ class TableWriter(object):
         """
         padded = []
         for i, rowelmt in enumerate(row):
+            if (self.cols_to_print and not self.table.columns[i]
+                    in self.cols_to_print):
+                continue
             width = self.column_widths[i]
             if (self.table.columns[i] in self.table.num_columns
                 and isinstance(rowelmt, (float, int))):
@@ -418,7 +428,14 @@ class TableWriter(object):
 
     def __div_row(self):
         """Return a division that look like |-----+------+------|."""
-        div = '|' + '+'.join(('-' * width for width in self.column_widths))
+        if self.cols_to_print:
+            col_indices = list(i for i, col in enumerate(self.table.columns)
+                           if col in self.cols_to_print)
+        else:
+            col_indices = list(range(len(self.table.columns)))
+        div = '|' + '+'.join(('-' * width for i, width
+                              in enumerate(self.column_widths)
+                              if i in col_indices))
         return div + '|\n'
 
 
