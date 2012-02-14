@@ -1,0 +1,10 @@
+* What the grades executable should be able to do.
+** DONE Read a file and print it on screen
+   CLOSED: [2012-02-13 Lun 12:30]
+** DONE Add cumulative grades to the table
+   CLOSED: [2012-02-13 Lun 12:30]
+** TODO Print only the table
+** DONE Add means to the table
+   CLOSED: [2012-02-13 Lun 12:30]
+** TODO Show results for a single student or subgroup of students
+** TODO Show results for a specific evaluation
