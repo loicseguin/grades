@@ -10,6 +10,20 @@
 ** TODO Show results for a single student or subgroup of students
 TableWriter now has the option to do this. The runner has
 to be updated in order to support appropriate command line arguments.
-** TODO Show results for a specific evaluation
+
+Moreover, it would be very nice to be able to print students in a certain
+group, or student whose grade for a certain evaluation is greater than or
+smaller than some value.
+** DONE Show results for a specific evaluation
+   CLOSED: [2012-02-15 Mer 10:31]
 TableWriter now has the option to do this. The runner has
-to be updated in order to support appropriate command line arguments.
+lPto be updated in order to support appropriate command line arguments.
+** TODO Calculate standard deviation
+** TODO Calculate mean in percentage
+** TODO Change /the headings/ to something that prints nicely in org-mode
+For instance, instead of using -- Cumul --, it could be something like *Cumul*
+or /Cumul/. Also the header names should be easily changed. Probably the best
+way to do this is to define a new property for GradesTable.
+** TODO Improved the object-orientedness by using properties 
+** TODO Make columns easier to manage
+They could either objects or dictionaries with some easily usable keys.

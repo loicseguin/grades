@@ -44,11 +44,11 @@ def run():
             help='print the mean for each GROUP for each evaluation; '
                  + 'GROUP must be the name of one of the columns in the '
                  + 'table')
-    clparser.add_argument('filehandle', type=argparse.FileType('r'),
+    clparser.add_argument('filename', type=argparse.FileType('r'),
             help='grades file to read and parse')
     args = clparser.parse_args()
 
-    gfile = GradesFile(args.filehandle)
+    gfile = GradesFile(args.filename)
     if args.cumul:
         gfile.table.compute_cumul()
         if args.columns:
@@ -56,7 +56,7 @@ def run():
     if args.mean:
         gfile.table.compute_mean()
     if args.group:
-        gfile.table.compute_grouped_mean(group_by=args.grouped)
+        gfile.table.compute_grouped_mean(group_by=args.group)
     gfile.print_file(div_on=args.div, columns=args.columns,
                      tableonly=args.tableonly)
 
