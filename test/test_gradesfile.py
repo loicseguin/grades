@@ -136,6 +136,28 @@ created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
 
+    output_str4 = """* Grades for a fictive class
+This is an example of how a table should look like in order to be properly
+processed by grades.py.
+
+| Nom              | Test 1 | Test 2 | -- Cumul -- |
+|                  |  70.00 | 100.00 |             |
+|                  |  10.00 |  10.00 |             |
+|------------------+--------+--------+-------------|
+| Bob Arthur       |  23.00 |  45.00 |        7.79 |
+|------------------+--------+--------+-------------|
+| Suzanne Tremblay |  67.00 |  78.00 |       41.37 |
+| Albert Prévert   |        | ABS    |       23.40 |
+|------------------+--------+--------+-------------|
+| -- Moyenne --    |  45.00 |  61.50 |       24.19 |
+
+What precedes and what follows the table will be preserved if the class
+GradesFile is used to process the file.
+
+Note that the columns and the lines with an header that starts with '--' are
+created by the script. When the script reads the table, it will ignore these
+lines and columns.
+"""
     def test_grouped_cumul_div(self):
         """Read the file and print it with the cumulative grade for each
         student as well as with divisions between groups."""
@@ -146,6 +168,7 @@ lines and columns.
         gfile = grades.classes.GradesFile(fname)
         os.unlink(fname)
         gfile.table.compute_cumul()
+        gfile.writer.cols_to_print.append('-- Cumul --')
         gfile.table.compute_grouped_mean('Group')
         old_stdout = sys.stdout
         sys.stdout = mystdout = io.StringIO()
@@ -193,3 +216,22 @@ lines and columns.
         gfile.print_file(div_on=('Group', 'Test 1'))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str3)
+
+    def test_cols(self):
+        """Write only certain columns of a table."""
+        fdesc, fname = tempfile.mkstemp()
+        tfile = os.fdopen(fdesc, 'w')
+        tfile.write(self.file_str)
+        tfile.close()
+        gfile = grades.classes.GradesFile(fname)
+        os.unlink(fname)
+        gfile.table.compute_cumul()
+        gfile.table.compute_mean()
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        gfile.print_file(div_on=('Group',),
+                         columns=('Nom', 'Test 1', 'Test 2',
+                         '-- Cumul --'))
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue(), self.output_str4)
+
