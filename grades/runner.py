@@ -38,6 +38,8 @@ def run():
             help='draw a horizontal division between students in different '
                  + 'DIV; DIV must be the name of one of the columns in '
                  + 'the table')
+    clparser.add_argument('-C', '--columns', nargs='*',
+            help='list of columns to print (default is to print all columns)')
     clparser.add_argument('-g', '--grouped',
             help='print the mean for each GROUPED for each evaluation; '
                  + 'GROUPED must be the name of one of the columns in the '
@@ -53,10 +55,8 @@ def run():
         gfile.table.compute_mean()
     if args.grouped:
         gfile.table.compute_grouped_mean(group_by=args.grouped)
-    if args.tableonly:
-        gfile.writer.printt(div_on=args.div)
-    else:
-        gfile.print_file(div_on=args.div)
+    gfile.print_file(div_on=args.div, columns=args.columns,
+                     tableonly=args.tableonly)
 
 
 if __name__ == '__main__':
