@@ -99,13 +99,15 @@ class GradesFile(object):
         self.table = GradesTable(tablelines)
         self.writer = TableWriter(self.table)
 
-    def print_file(self, div_on=None):
+    def print_file(self, div_on=None, columns=None, tableonly=False):
         """Print the file and the table."""
-        for line in self.header:
-            print(line)
-        self.writer.printt(div_on=div_on)
-        for line in self.footer:
-            print(line)
+        if not tableonly:
+            for line in self.header:
+                print(line)
+        self.writer.printt(div_on=div_on, columns=columns)
+        if not tableonly:
+            for line in self.footer:
+                print(line)
 
 
 class GradesTable(object):
@@ -294,7 +296,7 @@ class TableWriter(object):
         self.table = grade_table
         self.precision = 2
         self.column_widths = []
-        self.cols_to_print = None
+        self.cols_to_print = list(self.table.columns)
 
     def printt(self, div_on=None, columns=None):
         """Print the table.
@@ -311,7 +313,8 @@ class TableWriter(object):
            the columns.
 
         """
-        self.cols_to_print = columns
+        if columns:
+            self.cols_to_print = columns
         self.__set_columns_width()
         self.print_header()
         self.print_rows(div_on)
@@ -408,8 +411,7 @@ class TableWriter(object):
         """
         padded = []
         for i, rowelmt in enumerate(row):
-            if (self.cols_to_print and not self.table.columns[i]
-                    in self.cols_to_print):
+            if not self.table.columns[i] in self.cols_to_print:
                 continue
             width = self.column_widths[i]
             if (self.table.columns[i] in self.table.num_columns
@@ -428,11 +430,8 @@ class TableWriter(object):
 
     def __div_row(self):
         """Return a division that look like |-----+------+------|."""
-        if self.cols_to_print:
-            col_indices = list(i for i, col in enumerate(self.table.columns)
-                           if col in self.cols_to_print)
-        else:
-            col_indices = list(range(len(self.table.columns)))
+        col_indices = list(i for i, col in enumerate(self.table.columns)
+                       if col in self.cols_to_print)
         div = '|' + '+'.join(('-' * width for i, width
                               in enumerate(self.column_widths)
                               if i in col_indices))
@@ -460,4 +459,4 @@ if __name__ == '__main__':
     gfile = GradesFile('examples/math101.txt')
     gfile.table.compute_cumul()
     gfile.table.compute_grouped_mean()
-    gfile.print_file()
+    gfile.print_file(columns=('Nom', 'Test 2'))

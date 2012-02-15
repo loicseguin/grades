@@ -3,8 +3,13 @@
    CLOSED: [2012-02-13 Lun 12:30]
 ** DONE Add cumulative grades to the table
    CLOSED: [2012-02-13 Lun 12:30]
-** TODO Print only the table
+** DONE Print only the table
+   CLOSED: [2012-02-13 Lun 22:32]
 ** DONE Add means to the table
    CLOSED: [2012-02-13 Lun 12:30]
 ** TODO Show results for a single student or subgroup of students
+TableWriter now has the option to do this. The runner has
+to be updated in order to support appropriate command line arguments.
 ** TODO Show results for a specific evaluation
+TableWriter now has the option to do this. The runner has
+to be updated in order to support appropriate command line arguments.
