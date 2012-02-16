@@ -14,6 +14,22 @@ to be updated in order to support appropriate command line arguments.
 Moreover, it would be very nice to be able to print students in a certain
 group, or student whose grade for a certain evaluation is greater than or
 smaller than some value.
+
+The expressions that can be passed to the -s argument are:
+- comma separated list of student names
+  e.g.: "Roger Blah","Suzette"
+  The behaviour is then to print the rows that contain one of these names
+
+- comma separated list of indices
+  e.g.: 3, 5, 6, 2, 8
+
+- slices
+  e.g.: 4:6,8:12
+
+- equal, less than and greater than statements
+  e.g.: Group>300,"Test 1"=45,Midterm<60
+  Such an expression has the form [ColumnName][<>=][value]
+
 ** DONE Show results for a specific evaluation
    CLOSED: [2012-02-15 Mer 10:31]
 TableWriter now has the option to do this. The runner has
@@ -25,5 +41,6 @@ For instance, instead of using -- Cumul --, it could be something like *Cumul*
 or /Cumul/. Also the header names should be easily changed. Probably the best
 way to do this is to define a new property for GradesTable.
 ** TODO Improved the object-orientedness by using properties 
-** TODO Make columns easier to manage
+** DONE Make columns easier to manage
+   CLOSED: [2012-02-16 Jeu 15:26]
 They could either objects or dictionaries with some easily usable keys.

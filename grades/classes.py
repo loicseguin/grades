@@ -132,7 +132,11 @@ class GradesTable(object):
         self.footers = []
 
         if isinstance(data, GradesTable):
-            self = deepcopy(data)
+            self.evals = deepcopy(data.evals)
+            self.nb_col_headers = data.nb_col_headers
+            self.columns = deepcopy(data.columns)
+            self.students = deepcopy(data.students)
+            self.footers = deepcopy(data.footers)
         elif data:
             self.__parse_data(data)
 
@@ -152,6 +156,26 @@ class GradesTable(object):
         else:
             atable.students = [self.students[aslice]]
         return atable
+
+    def __iter__(self):
+        """Iterating over the table iterates through the list of students."""
+        return self.students.__iter__()
+
+    def __add__(self, atable):
+        """Adding a table to a table creates a new table with the union of the
+        students in both tables. Adding a student to a table, appends the
+        student to the list of students."""
+        sumtable = GradesTable(self)
+        if isinstance(atable, GradesTable):
+            if self.columns != atable.columns or self.evals != atable.evals:
+                raise TypeError('Cannot add tables with different headers.')
+            for student in atable:
+                sumtable.students.append(student)
+        elif isinstance(atable, defaultdict):
+            if list(atable.keys()) != list(self.students[0].keys()):
+                raise TypeError('Cannot add a student with different keys.')
+            sumtable.students.append(atable)
+        return sumtable
 
     def __parse_data(self, data):
         """Parse lines into table row.
