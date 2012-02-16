@@ -7,7 +7,6 @@
 
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
-__version__ = "0.1"
 
 
 import grades

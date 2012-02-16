@@ -10,10 +10,10 @@ Module for parsing command line arguments and running the appropriate command.
 
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
-__version__ = "0.1"
 
 
 import argparse
+import grades
 from .classes import GradesFile
 
 
@@ -27,7 +27,7 @@ def run():
     clparser = argparse.ArgumentParser(
         description='A grade management tool with plain text tables storage.')
     clparser.add_argument('-v', '--version', action='version',
-            version='%(prog)s 0.1')
+            version='%(prog)s ' + grades.__version__)
     clparser.add_argument('-m', '--mean', action='store_true',
             help='print the mean for each evaluation')
     clparser.add_argument('-c', '--cumul', action='store_true',

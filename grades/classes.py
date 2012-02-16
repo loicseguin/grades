@@ -29,7 +29,6 @@ from __future__ import print_function
 
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
-__version__ = "0.1"
 
 
 from collections import defaultdict
