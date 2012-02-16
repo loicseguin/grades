@@ -312,8 +312,13 @@ class TableWriter(object):
         self.table = grade_table
         self.precision = 2
 
-    def printt(self, div_on=None, columns=None):
-        """Print the table.
+    def __str__(self):
+        """Used to print()."""
+        self.__set_columns_width()
+        return self.as_str()
+
+    def as_str(self, div_on=None, columns=None):
+        """Return a string representation of the table.
 
         Parameters
         ----------
@@ -331,12 +336,27 @@ class TableWriter(object):
             for column in self.table.columns:
                 column['to_print'] = column['title'] in columns
         self.__set_columns_width()
-        self.print_header()
-        self.print_rows(div_on)
-        self.print_footer()
+        return self.header_str() + self.rows_str(div_on) + self.footer_str()
 
-    def print_header(self):
-        """Print headers for the table."""
+    def printt(self, div_on=None, columns=None):
+        """Print the table.
+
+        Parameters
+        ----------
+        div_on: tuple
+           Horizontal divisions will be written between rows for which one of
+           the values in the div_on tuple are different. div_on should contain
+           column names.
+
+        columns: iterable
+           List of columns to print. By default, this is None which prints all
+           the columns.
+
+        """
+        print(self.as_str(div_on=div_on, columns=columns), end='')
+
+    def header_str(self):
+        """Generate a string containing the header for the table."""
         # Column names row.
         str_hdr = self.__row_str(col['title'] for col in self.table.columns)
 
@@ -352,10 +372,14 @@ class TableWriter(object):
                 weight_row.append('')
         str_hdr += self.__row_str(max_row) + self.__row_str(weight_row)
         str_hdr += self.__div_row()
-        print(str_hdr, end='')
+        return str_hdr
 
-    def print_rows(self, div_on=None):
-        """Print the data rows.
+    def print_header(self):
+        """Print headers for the table."""
+        print(self.header_str(), end='')
+
+    def rows_str(self, div_on=None):
+        """Generate a string containing all the rows for the table.
 
         Parameters
         ----------
@@ -381,10 +405,23 @@ class TableWriter(object):
                         break
                 prevs = curs
             str_tbl += self.__row_str(student[ctitle] for ctitle in col_titles)
-        print(str_tbl, end='')
+        return str_tbl
 
-    def print_footer(self):
-        """Print footer for the table."""
+    def print_rows(self, div_on=None):
+        """Print the data rows.
+
+        Parameters
+        ----------
+        div_on: tuple
+           Horizontal divisions will be written between rows for which one of
+           the values in the div_on tuple are different. div_on should contain
+           column titles.
+
+        """
+        print(self.rows_str(div_on), end='')
+
+    def footer_str(self):
+        """Generate string for the footer of the table."""
         str_ftr = ''
         if self.table.footers:
             str_ftr += self.__div_row()
@@ -392,7 +429,11 @@ class TableWriter(object):
             for footer in self.table.footers:
                 str_ftr += self.__row_str(footer[ctitle] for ctitle in
                         col_titles)
-        print(str_ftr, end='')
+        return str_ftr
+
+    def print_footer(self):
+        """Print footer for the table."""
+        print(self.footer_str(), end='')
 
     def __set_columns_width(self):
         """Find the width of each column. The width of a column is the maximum
