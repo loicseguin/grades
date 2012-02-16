@@ -168,7 +168,6 @@ lines and columns.
         gfile = grades.classes.GradesFile(fname)
         os.unlink(fname)
         gfile.table.compute_cumul()
-        gfile.writer.cols_to_print.append('-- Cumul --')
         gfile.table.compute_grouped_mean('Group')
         old_stdout = sys.stdout
         sys.stdout = mystdout = io.StringIO()

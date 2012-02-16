@@ -32,6 +32,7 @@ __license__ = "BSD"
 __version__ = "0.1"
 
 
+from collections import defaultdict
 from copy import deepcopy
 
 
@@ -128,10 +129,8 @@ class GradesTable(object):
         self.columns = []
         self.nb_col_headers = 3
         self.evals = []
-        self.eval_names = []
         self.students = []
         self.footers = []
-        self.num_columns = []
 
         if isinstance(data, GradesTable):
             self = deepcopy(data)
@@ -149,8 +148,6 @@ class GradesTable(object):
         atable.columns = deepcopy(self.columns)
         atable.nb_col_headers = self.nb_col_headers
         atable.evals = deepcopy(self.evals)
-        atable.eval_names = deepcopy(self.eval_names)
-        atable.num_columns = self.num_columns
         if isinstance(aslice, slice):
             atable.students = self.students[aslice]
         else:
@@ -166,29 +163,49 @@ class GradesTable(object):
            A list of all the rows in the table.
 
         """
-        # The first three lines contain information about the evaluations.
-        self.columns = [entry for entry in _parse_line(data[0])
-                        if not entry.startswith('-')]
-        # Try to determine which column is an evaluation.  Evaluations are
-        # stored as dictionaries with keys name, max_grade and weight.
-        eval_colnum = [i for i, cname in enumerate(self.columns) if
-                       cname.upper().startswith(('TEST', 'EXAM', 'MIDTERM',
+        # First line contains columns titles.
+        col_titles = [entry for entry in _parse_line(data[0])
+                     if not entry.startswith('-')]
+        # Try to determine which column is an evaluation.
+        eval_colnum = [i for i, ctitle in enumerate(col_titles) if
+                       ctitle.upper().startswith(('TEST', 'EXAM', 'MIDTERM',
                        'QUIZ', 'FINAL', 'EVAL'))]
-        eval_names = [self.columns[i] for i in eval_colnum]
-        self.num_columns = list(eval_names)
-        eval_max = [_to_float(entry) for i, entry in
+        eval_names = [col_titles[i] for i in eval_colnum]
+        # Array that contains True for columns that are evaluations and False
+        # for the other columns.
+        is_num_col = [i in eval_colnum for i in range(len(col_titles))]
+
+        # Second line contains the maximum grade for each evaluation. If
+        # no maximum is provided, a default value of 100 is used.
+        eval_max = [_to_float(entry, 100.) for i, entry in
                     enumerate(_parse_line(data[1]))
                     if i in eval_colnum]
+        # Third line contains the weight of the evaluation (defaults to 0.)
         eval_weight = [_to_float(entry, 0.) for i, entry in
                        enumerate(_parse_line(data[2]))
                        if i in eval_colnum]
+
+        # Evaluations are stored as a list of dictionaries.
         self.evals = [dict((('name', name), ('max_grade', maxg),
-                           ('weight', weight))) for name, maxg, weight
+                            ('weight', weight)))
+                      for name, maxg, weight
                       in zip(eval_names, eval_max, eval_weight)]
-        self.eval_names = eval_names
+
+        # Generator that yields None for columns that are not evaluations and
+        # that yields the evaluation for columns that are evaluations.
+        evals_iter = self.evals.__iter__()
+        col_evals = (next(evals_iter) if is_num else None
+                     for is_num in is_num_col)
+
+        # Columns are stored as a list of dictionaries.
+        self.columns = [dict((('title', ctitle), ('is_num', isnum),
+                              ('evalu', evalu), ('width', 0),
+                              ('to_print', True)))
+                        for ctitle, isnum, evalu in
+                        zip(col_titles, is_num_col, col_evals)]
 
         # The next lines contain student records. Students are stored as a
-        # list of dictionaries keyed by column name.
+        # list of defaultdict keyed by column title with a str default factory.
         for line in data[self.nb_col_headers:]:
             if line.startswith('|-'):
                 # Separator line in the table.
@@ -197,14 +214,16 @@ class GradesTable(object):
             for i, entry in enumerate(_parse_line(line)):
                 if i >= len(self.columns) or entry.startswith('--'):
                     break
-                if self.columns[i] in self.eval_names:
-                    keyval.append((self.columns[i],
-                        _to_float(entry, entry)))
+                if self.columns[i]['is_num']:
+                    keyval.append((self.columns[i]['title'],
+                                   _to_float(entry, entry)))
                 else:
-                    keyval.append((self.columns[i], entry))
+                    # This is necessary to avoid casting groups numbers into
+                    # floats, which looks weird when printed.
+                    keyval.append((self.columns[i]['title'], entry))
 
             if keyval:
-                self.students.append(dict(keyval))
+                self.students.append(defaultdict(str, keyval))
 
     def compute_cumul(self):
         """Calculate the weighted mean for each student and add that result
@@ -217,8 +236,8 @@ class GradesTable(object):
                          for evalu in self.evals if
                          isinstance(student[evalu['name']], (float, int))))
             student['-- Cumul --'] = cumul
-        self.columns.append('-- Cumul --')
-        self.num_columns += ['-- Cumul --']
+        self.columns.append({'title': '-- Cumul --', 'is_num': True,
+                             'evalu': None, 'width': 0, 'to_print': True})
 
     def compute_mean(self, students=None, row_name='Moyenne'):
         """Calculate the mean for each evaluation and add the results to
@@ -235,19 +254,19 @@ class GradesTable(object):
            Name to use for the new footer row that contains the mean values.
 
         """
-        mean = {}
-        mean[self.columns[0]] = '-- ' + row_name + ' --'
+        mean = defaultdict(str)
+        mean[self.columns[0]['title']] = '-- ' + row_name + ' --'
         if not students:
             students = self.students
         for column in self.columns[1:]:
-            mean[column] = ''
-            if column in self.eval_names or column.startswith('--'):
+            col_title = column['title']
+            if column['is_num']:
                 nb_students = sum((1 for student in students if
-                                  isinstance(student[column], (float, int))))
-                sumg = sum((student[column] for student in students
-                         if isinstance(student[column], (float, int))))
+                                  isinstance(student[col_title], (float, int))))
+                sumg = sum((student[col_title] for student in students
+                         if isinstance(student[col_title], (float, int))))
                 if nb_students:
-                    mean[column] = sumg / nb_students
+                    mean[col_title] = sumg / nb_students
         self.footers.append(mean)
 
     def compute_grouped_mean(self, group_by='Group'):
@@ -257,24 +276,21 @@ class GradesTable(object):
         Parameters
         ----------
         group_by: string
-           A column name to be used to group students. The mean is calculated
+           A column title to be used to group students. The mean is calculated
            for groups of students that have the same value for the column
            group_by.
 
         Raises
         ------
         ValueError:
-            This exception is raised if group_by is not a column name.
+            This exception is raised if group_by is not a column title.
 
         """
-        if not group_by in self.columns:
-            raise ValueError(group_by + " is not a valid column name.")
-        groups = {}
+        if not group_by in [col['title'] for col in self.columns]:
+            raise ValueError(group_by + " is not a valid column title.")
+        groups = defaultdict(list)
         for student in self.students:
-            if not student[group_by] in groups:
-                groups[student[group_by]] = [student]
-            else:
-                groups[student[group_by]].append(student)
+            groups[student[group_by]].append(student)
         for group in groups:
             self.compute_mean(students=groups[group],
                               row_name='Moyenne ' + str(group))
@@ -295,8 +311,6 @@ class TableWriter(object):
         self.padding_right = 1
         self.table = grade_table
         self.precision = 2
-        self.column_widths = []
-        self.cols_to_print = list(self.table.columns)
 
     def printt(self, div_on=None, columns=None):
         """Print the table.
@@ -314,7 +328,8 @@ class TableWriter(object):
 
         """
         if columns:
-            self.cols_to_print = columns
+            for column in self.table.columns:
+                column['to_print'] = column['title'] in columns
         self.__set_columns_width()
         self.print_header()
         self.print_rows(div_on)
@@ -323,17 +338,15 @@ class TableWriter(object):
     def print_header(self):
         """Print headers for the table."""
         # Column names row.
-        str_hdr = self.__row_str(self.table.columns)
+        str_hdr = self.__row_str(col['title'] for col in self.table.columns)
 
         # Max and weight rows. These are filled only for evaluation columns.
-        i = 0
         max_row = []
         weight_row = []
         for column in self.table.columns:
-            if column in self.table.eval_names:
-                max_row.append(self.table.evals[i]['max_grade'])
-                weight_row.append(self.table.evals[i]['weight'])
-                i += 1
+            if column['evalu']:
+                max_row.append(column['evalu']['max_grade'])
+                weight_row.append(column['evalu']['weight'])
             else:
                 max_row.append('')
                 weight_row.append('')
@@ -349,25 +362,25 @@ class TableWriter(object):
         div_on: tuple
            Horizontal divisions will be written between rows for which one of
            the values in the div_on tuple are different. div_on should contain
-           column names.
+           column titles.
 
         """
         str_tbl = ''
+        col_titles = [col['title'] for col in self.table.columns]
         if div_on:
-            for cname in div_on:
-                if not cname in self.table.columns:
-                    raise ValueError(cname + " is not a valid column name.")
-            prevs = [self.table.students[0][cname] for cname in div_on]
+            for ctitle in div_on:
+                if not ctitle in col_titles:
+                    raise ValueError(ctitle + " is not a valid column title.")
+            prevs = [self.table.students[0][ctitle] for ctitle in div_on]
         for student in self.table.students:
             if div_on:
-                curs = [student[cname] for cname in div_on]
+                curs = [student[ctitle] for ctitle in div_on]
                 for prev, cur in zip(prevs, curs):
                     if prev != cur:
                         str_tbl += self.__div_row()
                         break
                 prevs = curs
-            str_tbl += self.__row_str(
-                    (student[cname] for cname in self.table.columns))
+            str_tbl += self.__row_str(student[ctitle] for ctitle in col_titles)
         print(str_tbl, end='')
 
     def print_footer(self):
@@ -375,9 +388,10 @@ class TableWriter(object):
         str_ftr = ''
         if self.table.footers:
             str_ftr += self.__div_row()
+            col_titles = [col['title'] for col in self.table.columns]
             for footer in self.table.footers:
-                str_ftr += self.__row_str((footer[cname] for cname in
-                    self.table.columns))
+                str_ftr += self.__row_str(footer[ctitle] for ctitle in
+                        col_titles)
         print(str_ftr, end='')
 
     def __set_columns_width(self):
@@ -385,24 +399,25 @@ class TableWriter(object):
         width of an entry in this column plus the padding.
 
         """
-        self.column_widths = []
         rows = self.table.students + self.table.footers
         for column in self.table.columns:
-            col = [column]
-            if column in self.table.num_columns:
+            ctitle = column['title']
+            col_contents = [ctitle]
+            if column['is_num']:
                 for row in rows:
-                    if isinstance(row[column], (float, int)):
+                    if isinstance(row[ctitle], (float, int)):
                         # Numerical data will be formatted to self.precision.
                         # Calculate the width of the formatted numbers.
-                        col += [format(row[column], '.%df' % self.precision)]
+                        col_contents.append(
+                                format(row[ctitle], '.%df' % self.precision))
                     else:
                         # Allow some cells to contain non numerical data such
                         # as 'ABS' for absences.
-                        col += [row[column]]
+                        col_contents.append(row[ctitle])
             else:
-                col += [row[column] for row in rows]
-            self.column_widths.append(self.padding_left + self.padding_right +
-                                      max(_len(str(row)) for row in col))
+                col_contents += [row[ctitle] for row in rows]
+            column['width'] = (self.padding_left + self.padding_right +
+                               max(_len(str(row)) for row in col_contents))
 
     def __row_str(self, row):
         """Create a string representation for a row in the table. The columns
@@ -411,10 +426,10 @@ class TableWriter(object):
         """
         padded = []
         for i, rowelmt in enumerate(row):
-            if not self.table.columns[i] in self.cols_to_print:
+            if not self.table.columns[i]['to_print']:
                 continue
-            width = self.column_widths[i]
-            if (self.table.columns[i] in self.table.num_columns
+            width = self.table.columns[i]['width']
+            if (self.table.columns[i]['is_num']
                 and isinstance(rowelmt, (float, int))):
                 str_elmt = format(rowelmt, '.%df' % self.precision)
                 padded.append(
@@ -429,12 +444,9 @@ class TableWriter(object):
         return '|' + '|'.join(padded) + '|\n'
 
     def __div_row(self):
-        """Return a division that look like |-----+------+------|."""
-        col_indices = list(i for i, col in enumerate(self.table.columns)
-                       if col in self.cols_to_print)
-        div = '|' + '+'.join(('-' * width for i, width
-                              in enumerate(self.column_widths)
-                              if i in col_indices))
+        """Return a division that looks like |-----+------+------|."""
+        div = '|' + '+'.join('-' * col['width'] for col in
+                             self.table.columns if col['to_print'])
         return div + '|\n'
 
 

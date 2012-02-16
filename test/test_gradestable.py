@@ -73,6 +73,20 @@ class TestGrablesTable(object):
 | -- Moyenne 302 -- |       |  67.00 |  78.00 |   80.00 |
 """
 
+    output_str3 = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
+|                   |       |  70.00 | 100.00 |  100.00 |             |
+|                   |       |  10.00 |  10.00 |   30.00 |             |
+|-------------------+-------+--------+--------+---------+-------------|
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |       41.37 |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |       39.31 |
+|-------------------+-------+--------+--------+---------+-------------|
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |       41.37 |
+|-------------------+-------+--------+--------+---------+-------------|
+| -- Moyenne 301 -- |       |  71.00 |  84.50 |   72.50 |             |
+| -- Moyenne 302 -- |       |  67.00 |  78.00 |   80.00 |             |
+"""
+
     def test_indexing(self):
         """Test indexing a GradesTable."""
         gtable = grades.classes.GradesTable(self.in_str.split('\n'))
@@ -110,3 +124,18 @@ class TestGrablesTable(object):
         writer.printt(div_on=('Group',))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str2)
+
+    def test_wrong_order(self):
+        """Test computing mean before cumul. Works with defaultdict."""
+        gtable = grades.classes.GradesTable(self.in_str.split('\n'))
+        gtable.compute_grouped_mean('Group')
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        subtable = gtable[1:7:2]
+        subtable.compute_grouped_mean('Group')
+        subtable.compute_cumul()
+        writer = grades.classes.TableWriter(subtable)
+        writer.printt(div_on=('Group',))
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue(), self.output_str3)
+
