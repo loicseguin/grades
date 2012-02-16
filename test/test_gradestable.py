@@ -138,4 +138,3 @@ class TestGrablesTable(object):
         writer.printt(div_on=('Group',))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str3)
-

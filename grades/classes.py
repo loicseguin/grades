@@ -198,10 +198,10 @@ class GradesTable(object):
                      for is_num in is_num_col)
 
         # Columns are stored as a list of dictionaries.
-        self.columns = [dict((('title', ctitle), ('is_num', isnum),
+        self.columns = [dict((('title', ctitle), ('is_num', is_num),
                               ('evalu', evalu), ('width', 0),
                               ('to_print', True)))
-                        for ctitle, isnum, evalu in
+                        for ctitle, is_num, evalu in
                         zip(col_titles, is_num_col, col_evals)]
 
         # The next lines contain student records. Students are stored as a
@@ -262,7 +262,7 @@ class GradesTable(object):
             col_title = column['title']
             if column['is_num']:
                 nb_students = sum((1 for student in students if
-                                  isinstance(student[col_title], (float, int))))
+                                 isinstance(student[col_title], (float, int))))
                 sumg = sum((student[col_title] for student in students
                          if isinstance(student[col_title], (float, int))))
                 if nb_students:

@@ -158,6 +158,7 @@ Note that the columns and the lines with an header that starts with '--' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
+
     def test_grouped_cumul_div(self):
         """Read the file and print it with the cumulative grade for each
         student as well as with divisions between groups."""
@@ -233,4 +234,3 @@ lines and columns.
                          '-- Cumul --'))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str4)
-
