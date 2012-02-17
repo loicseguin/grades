@@ -54,12 +54,12 @@ def run():
         args.columns = args.columns.split(',')
     if args.divs:
         args.divs = args.divs.split(',')
-    if args.students:
-        gfile.table = gfile.table.select(args.students)
     if args.cumul:
         gfile.table.compute_cumul()
         if args.columns:
             args.columns.append('-- Cumul --')
+    if args.students:
+        gfile.table = gfile.table.select(args.students)
     if args.mean:
         gfile.table.compute_mean()
     if args.group:

@@ -6,7 +6,7 @@ setup(
     name = 'grades',
     packages = ['grades'],
     scripts = ['bin/grades'],
-    version = '0.1',
+    version = '0.2',
     description = 'Minimalist grades management for teachers.',
     author = 'Loïc Séguin-C.',
     author_email = 'loicseguin@gmail.com',

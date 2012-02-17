@@ -7,8 +7,8 @@ readable by humans. The goal of **grades** is to let teachers manage their
 students' grade in plain text file while providing tools to parse the file and
 calculate students and group means.
 
-The table format that **grades** use is the one Emacs `org-mode
-<http://orgmode.org/index.html>`_ uses. Using org-mode, grades tables can be
+**Grades** uses the same table format as Emacs `org-mode
+<http://orgmode.org/index.html>`_. Using org-mode, grades tables can be
 easily set up and then **grades** will happily compute all the required values.
 
 Example
@@ -84,14 +84,47 @@ and the following gets printed to his terminal screen
 
 Notice how the text before and after the table was preserved.
 
+The teacher also wants to see the list of students with the lowest cumulative
+grades and he would like to hide the columns for the tests and group. Moreover,
+he would like to print only the table, not the text that precedes and follows.
+The following command does just that.
+
+::
+
+  grades -mc -C Nom,Midterm -s "-- Cumul --<35" -t
+
+::
+
+  | Nom            | Midterm | -- Cumul -- |
+  |                |  100.00 |             |
+  |                |   30.00 |             |
+  |----------------+---------+-------------|
+  | Albert Prévert |   78.00 |       23.40 |
+  | Buster Keaton  |   66.00 |       32.10 |
+  | Alicia Keys    |   73.00 |       33.61 |
+  |----------------+---------+-------------|
+  | -- Moyenne --  |   72.33 |       29.70 |
+
 Features
 --------
 * Calculate the weighted mean for each student.
 * Calculate the mean for each evaluation (global mean or mean per group).
 * Print the results with user chosen divisions.
+* Print selected evaluations.
+* Print selected students.
 
 Installation
 ------------
+To install, download the `tarball
+<https://github.com/loicseguin/grades/tarball/master>`_ or clone the git
+repository
+
+::
+
+  git clone git://github.com/loicseguin/grades.git
+
+Then, proceed to the installation using the setup script.
+
 ::
 
   python setup.py install
