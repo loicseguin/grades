@@ -36,7 +36,8 @@ TableWriter now has the option to do this. The runner has
 lPto be updated in order to support appropriate command line arguments.
 ** TODO Calculate standard deviation
 ** TODO Calculate mean in percentage
-** TODO Change /the headings/ to something that prints nicely in org-mode
+** DONE Change /the headings/ to something that prints nicely in org-mode
+   CLOSED: [2012-02-17 Ven 11:01]
 For instance, instead of using -- Cumul --, it could be something like *Cumul*
 or /Cumul/. Also the header names should be easily changed. Probably the best
 way to do this is to define a new property for GradesTable.

@@ -59,24 +59,24 @@ and the following gets printed to his terminal screen
   I wonder what happened to Bob Arthur's midterm and to Albert Prévert's Test
   1. Maybe they've eaten the salmon mousse.
   
-  | Nom               | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
-  |                   |       |  70.00 | 100.00 |  100.00 |             |
-  |                   |       |  10.00 |  10.00 |   30.00 |             |
-  |-------------------+-------+--------+--------+---------+-------------|
-  | Bob Arthur        | 301   |  23.00 |  45.00 |         |        7.79 |
-  | Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |       41.37 |
-  | Albert Prévert    | 301   |        | ABS    |   78.00 |       23.40 |
-  | André Arthur      | 301   |  75.00 |  91.00 |   65.00 |       39.31 |
-  |-------------------+-------+--------+--------+---------+-------------|
-  | Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |       41.37 |
-  | Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |       41.37 |
-  | Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |       42.96 |
-  | Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |       32.10 |
-  | Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |       33.61 |
-  |-------------------+-------+--------+--------+---------+-------------|
-  | -- Moyenne --     |       |  58.88 |  71.00 |   77.62 |       33.70 |
-  | -- Moyenne 301 -- |       |  55.00 |  71.33 |   74.33 |       27.97 |
-  | -- Moyenne 302 -- |       |  61.20 |  70.75 |   79.60 |       38.28 |
+  | Nom               | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
+  |                   |       |  70.00 | 100.00 |  100.00 |         |
+  |                   |       |  10.00 |  10.00 |   30.00 |         |
+  |-------------------+-------+--------+--------+---------+---------|
+  | Bob Arthur        | 301   |  23.00 |  45.00 |         |    7.79 |
+  | Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |   41.37 |
+  | Albert Prévert    | 301   |        | ABS    |   78.00 |   23.40 |
+  | André Arthur      | 301   |  75.00 |  91.00 |   65.00 |   39.31 |
+  |-------------------+-------+--------+--------+---------+---------|
+  | Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
+  | Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
+  | Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |   42.96 |
+  | Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |   32.10 |
+  | Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |   33.61 |
+  |-------------------+-------+--------+--------+---------+---------|
+  | /Moyenne/         |       |  58.88 |  71.00 |   77.62 |   33.70 |
+  | /Moyenne 301/     |       |  55.00 |  71.33 |   74.33 |   27.97 |
+  | /Moyenne 302/     |       |  61.20 |  70.75 |   79.60 |   38.28 |
   
   * Next class: How to add numbers
   As an exercise, ask the students to count the number of pencils in their
@@ -91,19 +91,19 @@ The following command does just that.
 
 ::
 
-  grades -mc -C Nom,Midterm -s "-- Cumul --<35" -t
+  grades -mc -C Nom,Midterm -s "/Cumul/<35" -t
 
 ::
 
-  | Nom            | Midterm | -- Cumul -- |
-  |                |  100.00 |             |
-  |                |   30.00 |             |
-  |----------------+---------+-------------|
-  | Albert Prévert |   78.00 |       23.40 |
-  | Buster Keaton  |   66.00 |       32.10 |
-  | Alicia Keys    |   73.00 |       33.61 |
-  |----------------+---------+-------------|
-  | -- Moyenne --  |   72.33 |       29.70 |
+  | Nom            | Midterm | /Cumul/ |
+  |                |  100.00 |         |
+  |                |   30.00 |         |
+  |----------------+---------+---------|
+  | Albert Prévert |   78.00 |   23.40 |
+  | Buster Keaton  |   66.00 |   32.10 |
+  | Alicia Keys    |   73.00 |   33.61 |
+  |----------------+---------+---------|
+  | /Moyenne/      |   72.33 |   29.70 |
 
 Features
 --------
