@@ -97,14 +97,14 @@ class GradesFile(object):
         if len(tablelines) < 3:
             raise Exception('Malformed table in file ' + fileh.name)
         self.table = GradesTable(tablelines)
-        self.writer = TableWriter(self.table)
 
     def print_file(self, div_on=None, columns=None, tableonly=False):
         """Print the file and the table."""
+        writer = TableWriter(self.table)
         if not tableonly:
             for line in self.header:
                 print(line)
-        self.writer.printt(div_on=div_on, columns=columns)
+        writer.printt(div_on=div_on, columns=columns)
         if not tableonly:
             for line in self.footer:
                 print(line)
@@ -172,10 +172,15 @@ class GradesTable(object):
             for student in atable:
                 sumtable.students.append(student)
         elif isinstance(atable, defaultdict):
-            if list(atable.keys()) != list(self.students[0].keys()):
+            if set(atable.keys()) != set(col['title'] for col in self.columns):
                 raise TypeError('Cannot add a student with different keys.')
             sumtable.students.append(atable)
         return sumtable
+
+    def __str__(self):
+        """String representation for the table using a TableWriter."""
+        writer = TableWriter(self)
+        return writer.as_str()
 
     def __parse_data(self, data):
         """Parse lines into table row.
@@ -318,6 +323,47 @@ class GradesTable(object):
             self.compute_mean(students=groups[group],
                               row_name='Moyenne ' + str(group))
 
+    def select(self, expression):
+        """Select a subset of students based on expression.
+
+        Parameter
+        ---------
+        expression: string
+           An expression is composed of a column name, one of the symbols '>',
+           '>=', '<', '<=' or '=' and a value.
+        """
+        sep = ''
+        if '>' in expression:
+            sep = '>'
+            if '>=' in expression:
+                sep = '>='
+        elif '<' in expression:
+            sep = '<'
+            if '<=' in expression:
+                sep = '<='
+        elif '=' in expression:
+            sep = '='
+        sel_table = GradesTable()
+        if sep:
+            col_title, value = expression.split(sep)
+            if not col_title in [col['title'] for col in self.columns]:
+                raise KeyError('%s is not a column title.' % col_title)
+            sel_table.columns = deepcopy(self.columns)
+            sel_table.nb_col_headers = self.nb_col_headers
+            sel_table.evals = deepcopy(self.evals)
+            if sep == '=':
+                sep = '=='
+            for student in self.students:
+                try:
+                    if student[col_title]:
+                        if eval('"' + str(student[col_title]) + '"'
+                                + sep + '"' + value + '"',
+                                {"__builtins__": None},{}):
+                            sel_table += student
+                except ValueError:
+                    pass
+        return sel_table
+
 
 class TableWriter(object):
     """A TableWriter takes care of formatting and printing a GradesTable."""
@@ -413,6 +459,11 @@ class TableWriter(object):
 
         """
         str_tbl = ''
+
+        if not self.table.students:
+            # Empty table, nothing to return.
+            return str_tbl
+
         col_titles = [col['title'] for col in self.table.columns]
         if div_on:
             for ctitle in div_on:

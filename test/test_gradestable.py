@@ -88,6 +88,16 @@ class TestGrablesTable(object):
 | -- Moyenne 302 -- |       |  67.00 |  78.00 |   80.00 |             |
 """
 
+    output_str4 = """\
+| Nom           | Group | Test 1 | Test 2 | Midterm |
+|               |       |  70.00 | 100.00 |  100.00 |
+|               |       |  10.00 |  10.00 |   30.00 |
+|---------------+-------+--------+--------+---------|
+| Bob Arthur    | 301   |  23.00 |  45.00 |         |
+| Buster Keaton | 302   |  56.00 |  43.00 |   66.00 |
+"""
+
+
     def test_indexing(self):
         """Test indexing a GradesTable."""
         gtable = grades.classes.GradesTable(self.in_str.split('\n'))
@@ -175,7 +185,7 @@ class TestGrablesTable(object):
         student = defaultdict(str, (('Nom', 'André Arthur'), ('Group', 301),
                     ('Test 1', 75.00), ('Test 2', 91.00), ('Midterm', 65.00)))
         sumtable = gtable1 + student
-        writer = grades.classes.TableWriter(sumtable)
+        #writer = grades.classes.TableWriter(sumtable)
 
         sol_str = """\
 | Nom              | Group | Test 1 | Test 2 | Midterm |
@@ -187,5 +197,11 @@ class TestGrablesTable(object):
 | Albert Prévert   | 301   |        | ABS    |   78.00 |
 | André Arthur     | 301   |  75.00 |  91.00 |   65.00 |"""
         assert_equal(sol_str.strip(),
-                     writer.as_str().strip())
+                     #writer.as_str().strip())
+                     str(sumtable).strip())
 
+    def test_select(self):
+        """Test selection of students."""
+        gtable = grades.classes.GradesTable(self.in_str.split('\n'))
+        gtable = gtable.select('Test 2<46')
+        assert_equal(str(gtable).strip(), self.output_str4.strip())

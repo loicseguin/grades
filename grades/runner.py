@@ -54,6 +54,8 @@ def run():
         args.columns = args.columns.split(',')
     if args.divs:
         args.divs = args.divs.split(',')
+    if args.students:
+        gfile.table = gfile.table.select(args.students)
     if args.cumul:
         gfile.table.compute_cumul()
         if args.columns:
@@ -62,8 +64,6 @@ def run():
         gfile.table.compute_mean()
     if args.group:
         gfile.table.compute_grouped_mean(group_by=args.group)
-    if args.students:
-        gfile.table = gfile.table.select(args.students)
     gfile.print_file(div_on=args.divs, columns=args.columns,
                      tableonly=args.tableonly)
 
