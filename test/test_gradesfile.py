@@ -29,23 +29,23 @@ class TestGradesFile(object):
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
 
-| Nom               | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
-|                   |       |  70.00 | 100.00 |  100.00 |             |
-|                   |       |  10.00 |  10.00 |   30.00 |             |
-|-------------------+-------+--------+--------+---------+-------------|
-| Bob Arthur        | 301   |  23.00 |  45.00 |         |        7.79 |
-|-------------------+-------+--------+--------+---------+-------------|
-| Suzanne Tremblay  | 302   |  67.00 |  78.00 |   80.00 |       41.37 |
-| Albert Prévert    | 302   |        | ABS    |   78.00 |       23.40 |
-|-------------------+-------+--------+--------+---------+-------------|
-| -- Moyenne --     |       |  45.00 |  61.50 |   79.00 |       24.19 |
-| -- Moyenne 301 -- |       |  23.00 |  45.00 |         |        7.79 |
-| -- Moyenne 302 -- |       |  67.00 |  78.00 |   79.00 |       32.39 |
+| Nom              | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
+|                  |       |  70.00 | 100.00 |  100.00 |         |
+|                  |       |  10.00 |  10.00 |   30.00 |         |
+|------------------+-------+--------+--------+---------+---------|
+| Bob Arthur       | 301   |  23.00 |  45.00 |         |    7.79 |
+|------------------+-------+--------+--------+---------+---------|
+| Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
+| Albert Prévert   | 302   |        | ABS    |   78.00 |   23.40 |
+|------------------+-------+--------+--------+---------+---------|
+| /Moyenne/        |       |  45.00 |  61.50 |   79.00 |   24.19 |
+| /Moyenne 301/    |       |  23.00 |  45.00 |         |    7.79 |
+| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |   32.39 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -54,13 +54,13 @@ lines and columns.
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
 
-| Nom               | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
-|                   |       |  70.00 | 100.00 |  100.00 |             |
+| Nom               | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
+|                   |       |  70.00 | 100.00 |  100.00 |         |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -69,22 +69,22 @@ lines and columns.
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
 
-| Nom               | Group | Test 1 | Test 2 | Midterm | -- Cumul -- |
-|                   |       |  70.00 | 100.00 |  100.00 |             |
-|                   |       |  10.00 |  10.00 |   30.00 |             |
-|-------------------+-------+--------+--------+---------+-------------|
-| Bob Arthur        | 301   |  23.00 |  45.00 |         |        7.79 |
-|-------------------+-------+--------+--------+---------+-------------|
-| Suzanne Tremblay  | 302   |  67.00 |  78.00 |   80.00 |       41.37 |
-| Albert Prévert    | 302   |        | ABS    |   78.00 |       23.40 |
-|-------------------+-------+--------+--------+---------+-------------|
-| -- Moyenne 301 -- |       |  23.00 |  45.00 |         |        7.79 |
-| -- Moyenne 302 -- |       |  67.00 |  78.00 |   79.00 |       32.39 |
+| Nom              | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
+|                  |       |  70.00 | 100.00 |  100.00 |         |
+|                  |       |  10.00 |  10.00 |   30.00 |         |
+|------------------+-------+--------+--------+---------+---------|
+| Bob Arthur       | 301   |  23.00 |  45.00 |         |    7.79 |
+|------------------+-------+--------+--------+---------+---------|
+| Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
+| Albert Prévert   | 302   |        | ABS    |   78.00 |   23.40 |
+|------------------+-------+--------+--------+---------+---------|
+| /Moyenne 301/    |       |  23.00 |  45.00 |         |    7.79 |
+| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |   32.39 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -93,21 +93,21 @@ lines and columns.
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
 
-| Nom               | Group | Test 1 | Test 2 | Midterm |
-|                   |       |  70.00 | 100.00 |  100.00 |
-|                   |       |  10.00 |  10.00 |   30.00 |
-|-------------------+-------+--------+--------+---------|
-| Bob Arthur        | 301   |  23.00 |  45.00 |         |
-| Suzanne Tremblay  | 302   |  67.00 |  78.00 |   80.00 |
-| Albert Prévert    | 302   |        | ABS    |   78.00 |
-|-------------------+-------+--------+--------+---------|
-| -- Moyenne 301 -- |       |  23.00 |  45.00 |         |
-| -- Moyenne 302 -- |       |  67.00 |  78.00 |   79.00 |
+| Nom              | Group | Test 1 | Test 2 | Midterm |
+|                  |       |  70.00 | 100.00 |  100.00 |
+|                  |       |  10.00 |  10.00 |   30.00 |
+|------------------+-------+--------+--------+---------|
+| Bob Arthur       | 301   |  23.00 |  45.00 |         |
+| Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |
+| Albert Prévert   | 302   |        | ABS    |   78.00 |
+|------------------+-------+--------+--------+---------|
+| /Moyenne 301/    |       |  23.00 |  45.00 |         |
+| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -126,12 +126,12 @@ processed by grades.py.
 |------------------+-------+--------+--------+---------|
 | Albert Prévert   | 302   |        | ABS    |   78.00 |
 |------------------+-------+--------+--------+---------|
-| -- Moyenne --    |       |  45.00 |  61.50 |   79.00 |
+| /Moyenne/        |       |  45.00 |  61.50 |   79.00 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -140,21 +140,21 @@ lines and columns.
 This is an example of how a table should look like in order to be properly
 processed by grades.py.
 
-| Nom              | Test 1 | Test 2 | -- Cumul -- |
-|                  |  70.00 | 100.00 |             |
-|                  |  10.00 |  10.00 |             |
-|------------------+--------+--------+-------------|
-| Bob Arthur       |  23.00 |  45.00 |        7.79 |
-|------------------+--------+--------+-------------|
-| Suzanne Tremblay |  67.00 |  78.00 |       41.37 |
-| Albert Prévert   |        | ABS    |       23.40 |
-|------------------+--------+--------+-------------|
-| -- Moyenne --    |  45.00 |  61.50 |       24.19 |
+| Nom              | Test 1 | Test 2 | /Cumul/ |
+|                  |  70.00 | 100.00 |         |
+|                  |  10.00 |  10.00 |         |
+|------------------+--------+--------+---------|
+| Bob Arthur       |  23.00 |  45.00 |    7.79 |
+|------------------+--------+--------+---------|
+| Suzanne Tremblay |  67.00 |  78.00 |   41.37 |
+| Albert Prévert   |        | ABS    |   23.40 |
+|------------------+--------+--------+---------|
+| /Moyenne/        |  45.00 |  61.50 |   24.19 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
 
-Note that the columns and the lines with an header that starts with '--' are
+Note that the columns and the lines with an header that starts with '/' are
 created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
@@ -231,6 +231,6 @@ lines and columns.
         sys.stdout = mystdout = io.StringIO()
         gfile.print_file(div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2',
-                         '-- Cumul --'))
+                         '/Cumul/'))
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue(), self.output_str4)

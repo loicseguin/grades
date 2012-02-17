@@ -5,7 +5,7 @@ I wonder what happened to Bob Arthur's midterm and to Albert Prévert's Test
 | Nom               | Group | Test 1 | Test 2 | Midterm |
 |                   |       |  70.00 | 100.00 |  100.00 |
 |                   |       |  10.00 |  10.00 |   30.00 |
-|-------------------+-------+--------+--------+---------+
+|-------------------+-------+--------+--------+---------|
 | Bob Arthur        | 301   |  23.00 |  45.00 |         |
 | Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |
 | Albert Prévert    | 301   |        | ABS    |   78.00 |

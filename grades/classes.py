@@ -193,7 +193,7 @@ class GradesTable(object):
         """
         # First line contains columns titles.
         col_titles = [entry for entry in _parse_line(data[0])
-                     if not entry.startswith('-')]
+                     if not entry.startswith('/')]
         # Try to determine which column is an evaluation.
         eval_colnum = [i for i, ctitle in enumerate(col_titles) if
                        ctitle.upper().startswith(('TEST', 'EXAM', 'MIDTERM',
@@ -240,7 +240,7 @@ class GradesTable(object):
                 continue
             keyval = []
             for i, entry in enumerate(_parse_line(line)):
-                if i >= len(self.columns) or entry.startswith('--'):
+                if i >= len(self.columns) or entry.startswith('/'):
                     break
                 if self.columns[i]['is_num']:
                     keyval.append((self.columns[i]['title'],
@@ -263,8 +263,8 @@ class GradesTable(object):
                          evalu['max_grade']
                          for evalu in self.evals if
                          isinstance(student[evalu['name']], (float, int))))
-            student['-- Cumul --'] = cumul
-        self.columns.append({'title': '-- Cumul --', 'is_num': True,
+            student['/Cumul/'] = cumul
+        self.columns.append({'title': '/Cumul/', 'is_num': True,
                              'evalu': None, 'width': 0, 'to_print': True})
 
     def compute_mean(self, students=None, row_name='Moyenne'):
@@ -283,7 +283,7 @@ class GradesTable(object):
 
         """
         mean = defaultdict(str)
-        mean[self.columns[0]['title']] = '-- ' + row_name + ' --'
+        mean[self.columns[0]['title']] = '/' + row_name + '/'
         if not students:
             students = self.students
         for column in self.columns[1:]:
@@ -567,14 +567,14 @@ class TableWriter(object):
 
 if __name__ == '__main__':
     test_data = """\
-| Nom               |Group | Test 1 | Test 2 | Midterm | --Cumul-- |
+| Nom               |Group | Test 1 | Test 2 | Midterm | /Cumul/   |
 |                   |      | 70     | 100    |         |           |
 |                   |      | 10     | 10     | 30      |           |
 |-------------------+------+--------+--------+---------+-----------|
 | Bob Arthur        | 301  | 23     | 45     |         |           |
 | Suzanne Tremblay  | 302  | 67     | 78     | 80      |           |
 | Albert Prévert    | 302  |        | ABS    | 78      |           |
-| -- Some stuff--   | This row | should | be |         | ignored   |
+| /Some stuff/      | This row | should | be |         | ignored   |
 """
     grades_tbl = GradesTable(test_data.strip().split('\n'))
     writer = TableWriter(grades_tbl)

@@ -57,7 +57,7 @@ def run():
     if args.cumul:
         gfile.table.compute_cumul()
         if args.columns:
-            args.columns.append('-- Cumul --')
+            args.columns.append('/Cumul/')
     if args.students:
         gfile.table = gfile.table.select(args.students)
     if args.mean:
