@@ -538,11 +538,11 @@ if __name__ == '__main__':
 | /Some stuff/      | This row | should | be |         | ignored   |
 """
     grades_tbl = GradesTable(test_data.strip().split('\n'))
-    writer = TableWriter(grades_tbl)
+    twriter = TableWriter(grades_tbl)
     grades_tbl.compute_cumul()
     grades_tbl.compute_mean()
     grades_tbl.compute_grouped_mean()
-    writer.printt()
+    twriter.printt()
 
     gfile = GradesFile('examples/math101.txt')
     gfile.table.compute_cumul()

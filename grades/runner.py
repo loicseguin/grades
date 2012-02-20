@@ -14,7 +14,7 @@ __license__ = "BSD"
 
 import argparse
 import sys
-import grades
+from . import __version__
 from .classes import GradesFile
 
 
@@ -28,7 +28,7 @@ def run(argv=sys.argv[1:]):
     clparser = argparse.ArgumentParser(
         description='A grade management tool with plain text tables storage.')
     clparser.add_argument('-v', '--version', action='version',
-            version='%(prog)s ' + grades.__version__)
+            version='%(prog)s ' + __version__)
     clparser.add_argument('-m', '--mean', action='store_true',
             help='print the mean for each evaluation')
     clparser.add_argument('-c', '--cumul', action='store_true',
