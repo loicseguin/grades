@@ -33,6 +33,7 @@ __license__ = "BSD"
 
 from collections import defaultdict
 from copy import deepcopy
+import re
 
 
 def _parse_line(line):
@@ -332,20 +333,11 @@ class GradesTable(object):
            An expression is composed of a column name, one of the symbols '>',
            '>=', '<', '<=' or '=' and a value.
         """
-        sep = ''
-        if '>' in expression:
-            sep = '>'
-            if '>=' in expression:
-                sep = '>='
-        elif '<' in expression:
-            sep = '<'
-            if '<=' in expression:
-                sep = '<='
-        elif '=' in expression:
-            sep = '='
-        sel_table = GradesTable()
-        if sep:
-            col_title, value = expression.split(sep)
+        sep = re.compile('(==?|[<>]=?|!=)')
+        splitted = sep.split(expression, maxsplit=1)
+        if len(splitted) == 3:
+            sel_table = GradesTable()
+            col_title, sep, value = splitted
             col_title = col_title.strip()
             value = value.strip()
             if not col_title in [col['title'] for col in self.columns]:
@@ -364,6 +356,8 @@ class GradesTable(object):
                             sel_table += student
                 except ValueError:
                     pass
+        else:
+            raise Exception("Invalid SELECT statement: %s" % expression)
         return sel_table
 
 

@@ -89,6 +89,50 @@ pencil case.
 | Bob Arthur | 301   |  23.00 |  45.00 |         |
 """
 
+    out_str4 = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
+|                   |       |  70.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+--------+---------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
+| Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |
+| Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |
+"""
+
+    out_str5 = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
+|                   |       |  70.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+--------+---------|
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
+"""
+
+    out_str6 = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
+|                   |       |  70.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+--------+---------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+| Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
+| Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |
+"""
+
+    out_str7 = """\
+| Nom | Group | Test 1 | Test 2 | Midterm |
+|     |       |  70.00 | 100.00 |  100.00 |
+|     |       |  10.00 |  10.00 |   30.00 |
+|-----+-------+--------+--------+---------|
+"""
+
     def test_no_opt(self):
         argv = ['examples/math101.txt']
         old_stdout = sys.stdout
@@ -131,9 +175,45 @@ pencil case.
         assert_equal(mystdout.getvalue().strip(), self.out_str3.strip())
 
     def test_select_name2(self):
-        argv = ['-ts', 'Nom = Bob Arthur', 'examples/math101.txt']
+        argv = ['-ts', 'Nom == Bob Arthur', 'examples/math101.txt']
         old_stdout = sys.stdout
         sys.stdout = mystdout = io.StringIO()
         runner.run(argv)
         sys.stdout = old_stdout
         assert_equal(mystdout.getvalue().strip(), self.out_str3.strip())
+
+    def test_select_name3(self):
+        argv = ['-ts', 'Nom < Mon', 'examples/math101.txt']
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        runner.run(argv)
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue().strip(), self.out_str4.strip())
+
+    def test_select_test_2(self):
+        argv = ['-ts', 'Test 2 >= 80', 'examples/math101.txt']
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        runner.run(argv)
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue().strip(), self.out_str5.strip())
+
+    def test_select_ne(self):
+        argv = ['-ts', 'Test 2 != ABS', 'examples/math101.txt']
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        runner.run(argv)
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue().strip(), self.out_str6.strip())
+
+    def test_invalid_select(self):
+        argv = ['-ts', 'Test / 2', 'examples/math101.txt']
+        assert_raises(Exception, runner.run, argv)
+
+    def test_select_empty(self):
+        argv = ['-ts', 'Test 2 = -1', 'examples/math101.txt']
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = io.StringIO()
+        runner.run(argv)
+        sys.stdout = old_stdout
+        assert_equal(mystdout.getvalue().strip(), self.out_str7.strip())
