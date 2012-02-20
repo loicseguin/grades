@@ -346,6 +346,8 @@ class GradesTable(object):
         sel_table = GradesTable()
         if sep:
             col_title, value = expression.split(sep)
+            col_title = col_title.strip()
+            value = value.strip()
             if not col_title in [col['title'] for col in self.columns]:
                 raise KeyError('%s is not a column title.' % col_title)
             sel_table.columns = deepcopy(self.columns)

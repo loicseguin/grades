@@ -13,11 +13,12 @@ __license__ = "BSD"
 
 
 import argparse
+import sys
 import grades
 from .classes import GradesFile
 
 
-def run():
+def run(argv=sys.argv[1:]):
     """Make the runner run.
 
     Arguments from ``sys.argv`` are processed and are
@@ -47,7 +48,7 @@ def run():
             help='expression specifying students to print')
     clparser.add_argument('filename', type=argparse.FileType('r'),
             help='grades file to read and parse')
-    args = clparser.parse_args()
+    args = clparser.parse_args(argv)
 
     gfile = GradesFile(args.filename)
     if args.columns:
