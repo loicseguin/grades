@@ -75,15 +75,14 @@ class GradesFile(object):
 
     """
     def __init__(self, fileh):
-        """Initialize the GradesFile object by parsing filename."""
+        """Initialize the GradesFile object by parsing fileh."""
         object.__init__(self)
         self.header = []
         self.footer = []
         tablelines = []
-        if not hasattr(fileh, 'read'):
+        if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
             fileh = open(fileh, 'r')
-        lines = [line for line in fileh]
-        for line in lines:
+        for line in fileh:
             line = line.strip()
             if not line.startswith('|'):
                 if not tablelines:
