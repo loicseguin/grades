@@ -116,12 +116,10 @@ class GradesTable(object):
         object.__init__(self)
         self.columns = []
         self.nb_col_headers = 3
-        self.evals = []
         self.students = []
         self.footers = []
 
         if isinstance(data, GradesTable):
-            self.evals = deepcopy(data.evals)
             self.nb_col_headers = data.nb_col_headers
             self.columns = deepcopy(data.columns)
             self.students = deepcopy(data.students)
@@ -139,7 +137,6 @@ class GradesTable(object):
         atable = GradesTable()
         atable.columns = deepcopy(self.columns)
         atable.nb_col_headers = self.nb_col_headers
-        atable.evals = deepcopy(self.evals)
         if isinstance(aslice, slice):
             atable.students = self.students[aslice]
         else:
@@ -156,7 +153,7 @@ class GradesTable(object):
         student to the list of students."""
         sumtable = GradesTable(self)
         if isinstance(atable, GradesTable):
-            if self.columns != atable.columns or self.evals != atable.evals:
+            if self.columns != atable.columns:
                 raise TypeError('Cannot add tables with different headers.')
             for student in atable:
                 sumtable.students.append(student)
@@ -193,10 +190,8 @@ class GradesTable(object):
                 continue
             if header[0].upper().startswith(('TEST', 'EXAM', 'MIDTERM',
                                              'QUIZ', 'FINAL', 'EVAL')):
-                evalu = {'name': header[0],
-                         'max_grade': _to_float(header[1], 100.),
+                evalu = {'max_grade': _to_float(header[1], 100.),
                          'weight': _to_float(header[2], 0.)}
-                self.evals.append(evalu)
                 self.columns.append(
                         {'title': header[0], 'is_num': True, 'evalu': evalu,
                          'width': 0, 'to_print': True})
@@ -230,15 +225,16 @@ class GradesTable(object):
 
         """
         for student in self.students:
-            cumul = sum((student[evalu['name']] * evalu['weight'] /
-                         evalu['max_grade']
-                         for evalu in self.evals if
-                         isinstance(student[evalu['name']], (float, int))))
-            student['/Cumul/'] = cumul
+            student['/Cumul/'] = sum(
+                    (student[column['title']] * column['evalu']['weight']
+                     / column['evalu']['max_grade']
+                     for column in self.columns
+                     if column['evalu']
+                     and isinstance(student[column['title']], (float, int))))
         self.columns.append({'title': '/Cumul/', 'is_num': True,
                              'evalu': None, 'width': 0, 'to_print': True})
 
-    def compute_mean(self, students=None, row_name='Moyenne'):
+    def compute_mean(self, students=None, row_name='Mean'):
         """Calculate the mean for each evaluation and add the results to
         a new row at the bottom of the table. Blanks in the table are not taken
         into account, i.e., a blank does not count as a zero.
@@ -314,7 +310,6 @@ class GradesTable(object):
                 raise KeyError('%s is not a column title.' % col_title)
             sel_table.columns = deepcopy(self.columns)
             sel_table.nb_col_headers = self.nb_col_headers
-            sel_table.evals = deepcopy(self.evals)
             if sep == '=':
                 sep = '=='
             for student in self.students:
