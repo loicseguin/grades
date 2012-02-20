@@ -101,13 +101,12 @@ class GradesFile(object):
     def print_file(self, div_on=None, columns=None, tableonly=False):
         """Print the file and the table."""
         writer = TableWriter(self.table)
-        if not tableonly:
-            for line in self.header:
-                print(line)
-        writer.printt(div_on=div_on, columns=columns)
-        if not tableonly:
-            for line in self.footer:
-                print(line)
+        if tableonly:
+            writer.printt(div_on=div_on, columns=columns)
+        else:
+            print('\n'.join(self.header))
+            writer.printt(div_on=div_on, columns=columns)
+            print('\n'.join(self.footer))
 
 
 class GradesTable(object):
