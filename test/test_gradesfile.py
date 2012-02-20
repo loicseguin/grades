@@ -38,9 +38,9 @@ processed by grades.py.
 | Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
 | Albert Prévert   | 302   |        | ABS    |   78.00 |   23.40 |
 |------------------+-------+--------+--------+---------+---------|
-| /Moyenne/        |       |  45.00 |  61.50 |   79.00 |   24.19 |
-| /Moyenne 301/    |       |  23.00 |  45.00 |         |    7.79 |
-| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |   32.39 |
+| /Mean/           |       |  45.00 |  61.50 |   79.00 |   24.19 |
+| /Mean 301/       |       |  23.00 |  45.00 |         |    7.79 |
+| /Mean 302/       |       |  67.00 |  78.00 |   79.00 |   32.39 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
@@ -78,8 +78,8 @@ processed by grades.py.
 | Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
 | Albert Prévert   | 302   |        | ABS    |   78.00 |   23.40 |
 |------------------+-------+--------+--------+---------+---------|
-| /Moyenne 301/    |       |  23.00 |  45.00 |         |    7.79 |
-| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |   32.39 |
+| /Mean 301/       |       |  23.00 |  45.00 |         |    7.79 |
+| /Mean 302/       |       |  67.00 |  78.00 |   79.00 |   32.39 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
@@ -101,8 +101,8 @@ processed by grades.py.
 | Suzanne Tremblay | 302   |  67.00 |  78.00 |   80.00 |
 | Albert Prévert   | 302   |        | ABS    |   78.00 |
 |------------------+-------+--------+--------+---------|
-| /Moyenne 301/    |       |  23.00 |  45.00 |         |
-| /Moyenne 302/    |       |  67.00 |  78.00 |   79.00 |
+| /Mean 301/       |       |  23.00 |  45.00 |         |
+| /Mean 302/       |       |  67.00 |  78.00 |   79.00 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
@@ -126,7 +126,7 @@ processed by grades.py.
 |------------------+-------+--------+--------+---------|
 | Albert Prévert   | 302   |        | ABS    |   78.00 |
 |------------------+-------+--------+--------+---------|
-| /Moyenne/        |       |  45.00 |  61.50 |   79.00 |
+| /Mean/           |       |  45.00 |  61.50 |   79.00 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.
@@ -149,7 +149,7 @@ processed by grades.py.
 | Suzanne Tremblay |  67.00 |  78.00 |   41.37 |
 | Albert Prévert   |        | ABS    |   23.40 |
 |------------------+--------+--------+---------|
-| /Moyenne/        |  45.00 |  61.50 |   24.19 |
+| /Mean/           |  45.00 |  61.50 |   24.19 |
 
 What precedes and what follows the table will be preserved if the class
 GradesFile is used to process the file.

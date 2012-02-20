@@ -288,7 +288,7 @@ class GradesTable(object):
             groups[student[group_by]].append(student)
         for group in groups:
             self.compute_mean(students=groups[group],
-                              row_name='Moyenne ' + str(group))
+                              row_name='Mean ' + str(group))
 
     def select(self, expression):
         """Select a subset of students based on expression.
