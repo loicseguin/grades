@@ -36,16 +36,6 @@ from copy import deepcopy
 import re
 
 
-def _parse_line(line):
-    """Read a line and split it into tokens. This is a generator that
-    yields the tokens. A typical line looks like '| A Name | info | 78 | 90|'
-    and gets parsed into the following tokens: 'A Name', 'info', 78, 90.
-
-    """
-    for entry in line.strip('|').split('|'):
-        yield entry.strip()
-
-
 def _to_float(val, default=100.):
     """Convert string val into float with fallback value default."""
     try:
@@ -190,67 +180,49 @@ class GradesTable(object):
            A list of all the rows in the table.
 
         """
-        # First line contains columns titles.
-        col_titles = [entry for entry in _parse_line(data[0])
-                     if not entry.startswith('/')]
-        # Try to determine which column is an evaluation.
-        eval_colnum = [i for i, ctitle in enumerate(col_titles) if
-                       ctitle.upper().startswith(('TEST', 'EXAM', 'MIDTERM',
-                       'QUIZ', 'FINAL', 'EVAL'))]
-        eval_names = [col_titles[i] for i in eval_colnum]
-        # Array that contains True for columns that are evaluations and False
-        # for the other columns.
-        is_num_col = [i in eval_colnum for i in range(len(col_titles))]
-
-        # Second line contains the maximum grade for each evaluation. If
-        # no maximum is provided, a default value of 100 is used.
-        eval_max = [_to_float(entry, 100.) for i, entry in
-                    enumerate(_parse_line(data[1]))
-                    if i in eval_colnum]
-        # Third line contains the weight of the evaluation (defaults to 0.)
-        eval_weight = [_to_float(entry, 0.) for i, entry in
-                       enumerate(_parse_line(data[2]))
-                       if i in eval_colnum]
-
-        # Evaluations are stored as a list of dictionaries.
-        self.evals = [dict((('name', name), ('max_grade', maxg),
-                            ('weight', weight)))
-                      for name, maxg, weight
-                      in zip(eval_names, eval_max, eval_weight)]
-
-        # Generator that yields None for columns that are not evaluations and
-        # that yields the evaluation for columns that are evaluations.
-        evals_iter = self.evals.__iter__()
-        col_evals = (next(evals_iter) if is_num else None
-                     for is_num in is_num_col)
-
-        # Columns are stored as a list of dictionaries.
-        self.columns = [dict((('title', ctitle), ('is_num', is_num),
-                              ('evalu', evalu), ('width', 0),
-                              ('to_print', True)))
-                        for ctitle, is_num, evalu in
-                        zip(col_titles, is_num_col, col_evals)]
+        # The first three line contains columns headers. If a column
+        # corresponds to an evaluation, the first line is the title, the second
+        # line is the maximum grade and the third line is the weight.
+        # Otherwise, the first line is the title and the two other lines are
+        # ignored.
+        entry_sep = re.compile('\s*\|\s*')
+        header_lines = (entry_sep.split(line)[1:-1] for line in data[:3])
+        headers = zip(*header_lines)
+        for header in headers:
+            if header[0].startswith('/'):  # Reserved for calculated columns
+                continue
+            if header[0].upper().startswith(('TEST', 'EXAM', 'MIDTERM',
+                                             'QUIZ', 'FINAL', 'EVAL')):
+                evalu = {'name': header[0],
+                         'max_grade': _to_float(header[1], 100.),
+                         'weight': _to_float(header[2], 0.)}
+                self.evals.append(evalu)
+                self.columns.append(
+                        {'title': header[0], 'is_num': True, 'evalu': evalu,
+                         'width': 0, 'to_print': True})
+            else:
+                self.columns.append(
+                        {'title': header[0], 'is_num': False, 'evalu': None,
+                         'width': 0, 'to_print': True})
 
         # The next lines contain student records. Students are stored as a
         # list of defaultdict keyed by column title with a str default factory.
         for line in data[self.nb_col_headers:]:
-            if line.startswith('|-'):
-                # Separator line in the table.
+            if line.startswith('|-'):  # Separator line in the table
                 continue
-            keyval = []
-            for i, entry in enumerate(_parse_line(line)):
+            student = defaultdict(str)
+            for i, entry in enumerate(entry_sep.split(line)[1:-1]):
                 if i >= len(self.columns) or entry.startswith('/'):
                     break
                 if self.columns[i]['is_num']:
-                    keyval.append((self.columns[i]['title'],
-                                   _to_float(entry, entry)))
+                    student.update(
+                        [(self.columns[i]['title'], _to_float(entry, entry))])
                 else:
                     # This is necessary to avoid casting groups numbers into
                     # floats, which looks weird when printed.
-                    keyval.append((self.columns[i]['title'], entry))
-
-            if keyval:
-                self.students.append(defaultdict(str, keyval))
+                    student.update([(self.columns[i]['title'], entry)])
+            if student:
+                self.students.append(student)
 
     def compute_cumul(self):
         """Calculate the weighted mean for each student and add that result
