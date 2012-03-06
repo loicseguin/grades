@@ -41,7 +41,7 @@ def run(argv=sys.argv[1:]):
     clparser.add_argument('-C', '--columns',
             help='comma separated list of columns to print (default is to print'
                  + ' all columns)')
-    clparser.add_argument('-g', '--grouped', dest='group',
+    clparser.add_argument('-g', '--grouped', dest='groups',
             help='print the mean for each GROUP for each evaluation; '
                  + 'GROUP must be a column title')
     clparser.add_argument('-s', '--students',
@@ -55,6 +55,8 @@ def run(argv=sys.argv[1:]):
         args.columns = args.columns.split(',')
     if args.divs:
         args.divs = args.divs.split(',')
+    if args.groups:
+        args.groups = args.groups.split(',')
     if args.cumul:
         gfile.table.compute_cumul()
         if args.columns:
@@ -63,8 +65,9 @@ def run(argv=sys.argv[1:]):
         gfile.table = gfile.table.select(args.students)
     if args.mean:
         gfile.table.compute_mean()
-    if args.group:
-        gfile.table.compute_grouped_mean(group_by=args.group)
+    if args.groups:
+        for group in args.groups:
+            gfile.table.compute_grouped_mean(group_by=group)
     gfile.print_file(div_on=args.divs, columns=args.columns,
                      tableonly=args.tableonly)
 
