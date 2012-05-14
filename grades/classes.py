@@ -230,11 +230,11 @@ class GradesTable(object):
             for column in self.columns:
                 if column['evalu'] and isinstance(student[column['title']],
                         (float, int)):
-                    student['/Cumul/'] += (student[column['title'] *
+                    student['/Cumul/'] += (student[column['title']] *
                         column['evalu']['weight'] /
                         column['evalu']['max_grade'])
                     tot_weight += column['evalu']['weight']
-            student['/Cumul/'] /= (tot_weight or 1.)
+            student['/Cumul/'] /= (tot_weight or 1.) * 0.01
         self.columns.append({'title': '/Cumul/', 'is_num': True,
                              'evalu': None, 'width': 0, 'to_print': True})
 
