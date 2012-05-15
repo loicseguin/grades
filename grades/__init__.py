@@ -1,17 +1,18 @@
 #-*- coding: utf-8 -*-
-"""
+"""\
+======
 Grades
 ======
 
 For managing student grades, most teachers use spreadsheet tools. With these
 tools, it is hard to maintain grades in plain text files that are easily
-readable by humans. The goal of **grades** is to let teachers manage their
-students' grade in plain text file while providing tools to parse the file and
+readable by humans. The goal of **Grades** is to let teachers manage their
+students's grade in plain text file while providing tools to parse the file and
 calculate students and group means.
 
-The table format that **grades** use is the one Emacs `org-mode
+The table format that **Grades** use is the one Emacs `org-mode
 <http://orgmode.org/index.html>`_ uses. Using org-mode, grades tables can be
-easily set up and then **grades** will happily compute all the required values.
+easily set up and then **Grades** will happily compute all the required values.
 
 """
 
@@ -24,5 +25,7 @@ __license__ = "BSD"
 __version__ = "0.2"
 
 
-from . import classes
+from . import gradestable
+from . import parsers
 from . import runner
+from . import writers

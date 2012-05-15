@@ -115,12 +115,12 @@ class GradesTable(object):
         """
         object.__init__(self)
         self.columns = []
-        self.nb_col_headers = 3
+        self.nb_header_rows = 3
         self.students = []
         self.footers = []
 
         if isinstance(data, GradesTable):
-            self.nb_col_headers = data.nb_col_headers
+            self.nb_header_rows = data.nb_header_rows
             self.columns = deepcopy(data.columns)
             self.students = deepcopy(data.students)
             self.footers = deepcopy(data.footers)
@@ -136,7 +136,7 @@ class GradesTable(object):
         """
         atable = GradesTable()
         atable.columns = deepcopy(self.columns)
-        atable.nb_col_headers = self.nb_col_headers
+        atable.nb_header_rows = self.nb_header_rows
         if isinstance(aslice, slice):
             atable.students = self.students[aslice]
         else:
@@ -202,7 +202,7 @@ class GradesTable(object):
 
         # The next lines contain student records. Students are stored as a
         # list of defaultdict keyed by column title with a str default factory.
-        for line in data[self.nb_col_headers:]:
+        for line in data[self.nb_header_rows:]:
             if line.startswith('|-'):  # Separator line in the table
                 continue
             student = defaultdict(str)
@@ -313,7 +313,7 @@ class GradesTable(object):
             if not col_title in [col['title'] for col in self.columns]:
                 raise KeyError('%s is not a column title.' % col_title)
             sel_table.columns = deepcopy(self.columns)
-            sel_table.nb_col_headers = self.nb_col_headers
+            sel_table.nb_header_rows = self.nb_header_rows
             if sep == '=':
                 sep = '=='
             for student in self.students:
