@@ -53,16 +53,11 @@ class TestParser:
     test2 = {'max_grade': 100., 'weight': 30.}
     midterm = {'max_grade': 100., 'weight': 40.}
     columns = [
-            {'title': 'Name', 'is_num': False, 'evalu': None, 'width': 0,
-                'to_print': True},
-            {'title': 'Group', 'is_num': False, 'evalu': None,
-                'width': 0, 'to_print': True},
-            {'title': 'Test 1', 'is_num': True, 'evalu': test1,
-                'width': 0, 'to_print': True},
-            {'title': 'Test 2', 'is_num': True, 'evalu': test2,
-                'width': 0, 'to_print': True},
-            {'title': 'Midterm', 'is_num': True, 'evalu': midterm,
-                'width': 0, 'to_print': True}
+            {'title': 'Name', 'is_num': False, 'evalu': None, 'width': 0},
+            {'title': 'Group', 'is_num': False, 'evalu': None, 'width': 0},
+            {'title': 'Test 1', 'is_num': True, 'evalu': test1, 'width': 0},
+            {'title': 'Test 2', 'is_num': True, 'evalu': test2, 'width': 0},
+            {'title': 'Midterm', 'is_num': True, 'evalu': midterm, 'width': 0}
             ]
 
     students = [

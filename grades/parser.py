@@ -98,12 +98,11 @@ def parse_table(data, ignore_char='*'):
             evalu = {'max_grade': _to_float(max_grade, 100.),
                      'weight': _to_float(weight, 0.)}
             table.columns.append(
-                    {'title': name, 'is_num': True, 'evalu': evalu,
-                     'width': 0, 'to_print': True})
+                    {'title': name, 'is_num': True, 'evalu': evalu, 'width': 0})
         else:
             table.columns.append(
                     {'title': name, 'is_num': False, 'evalu': None,
-                     'width': 0, 'to_print': True})
+                     'width': 0})
 
     # The next rows contain student records. Students are stored as a
     # list of defaultdict keyed by column title with a str default factory.
