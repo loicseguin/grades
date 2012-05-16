@@ -10,26 +10,16 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-from nose.tools import assert_equal
-try:
-    import cStringIO as io
-except ImportError:
-    try:
-        import StringIO as io
-    except ImportError:
-        import io  # For Python 3
-from grades import parsers
+from nose.tools import assert_equal, assert_raises
+from grades import parser
 
 
-
-class TestParsers:
+class TestParser:
     """Define some tables to test if they are parsed correctly."""
     rst_grid_table = """\
 +------------------+-------+--------+--------+---------+
 | Name             | Group | Test 1 | Test 2 | Midterm |
-|                  |       +--------+--------+---------+
 |                  |       | 70     | 100.00 | 100.00  |
-|                  |       +--------+--------+---------+
 |                  |       | 30.00  | 30     | 40.00   |
 +==================+=======+========+========+=========+
 | Bob Arthur       | 301   | 23.00  | 45.00  |         |
@@ -43,6 +33,15 @@ class TestParsers:
     org_table = """\
 | Name             | Group | Test 1 | Test 2 | Midterm |
 |                  |       |  70    | 100.00 |  100.00 |
+|                  |       |  30.00 |  30    |   40.00 |
+|------------------+-------+--------+--------+---------|
+| Bob Arthur       | 301   |  23.00 |  45.00 |         |
+| Suzanne Tremblay | 301   |  67    |  78.00 |   80.00 |
+| Albert Prévert   | 302   |        | ABS    |   78.00 |
+"""
+
+    too_short_header = """\
+| Name             | Group | Test 1 | Test 2 | Midterm |
 |                  |       |  30.00 |  30    |   40.00 |
 |------------------+-------+--------+--------+---------|
 | Bob Arthur       | 301   |  23.00 |  45.00 |         |
@@ -76,13 +75,17 @@ class TestParsers:
             ]
 
 
-    def check_with_parser_and_str(self, parser, table_str):
-        table = parser.parse(table_str.strip().split('\n'))
-        assert_equal(columns, table.columns)
-        assert_equal(students, table.students)
-    
-    def test_rst_parser(self):
-        self.check_with_parser_and_str(parsers.RSTTableParser(), self.rst_grid_table)
-    
-    def test_org_parser(self):
-        self.check_with_parser_and_str(parsers.OrgTableParser(), self.org_table)
+    def check_table_str(self, table_str):
+        table = parser.parse_table(table_str.strip().split('\n'))
+        assert_equal(self.columns, table.columns)
+        assert_equal(self.students, table.students)
+
+    def test_rst_table(self):
+        self.check_table_str(self.rst_grid_table)
+
+    def test_org_table(self):
+        self.check_table_str(self.org_table)
+
+    def test_short_header(self):
+        assert_raises(parser.TableMarkupError, parser.parse_table,
+                      self.too_short_header)

@@ -15,7 +15,7 @@ __license__ = "BSD"
 import argparse
 import sys
 from . import __version__
-from .classes import GradesFile
+from .gradestable import GradesFile
 
 
 def run(argv=sys.argv[1:]):

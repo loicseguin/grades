@@ -26,6 +26,6 @@ __version__ = "0.2"
 
 
 from . import gradestable
-from . import parsers
+from . import parser
 from . import runner
-from . import writers
+from . import writer

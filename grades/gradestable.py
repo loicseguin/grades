@@ -1,30 +1,13 @@
 #-*- coding: utf-8 -*-
-"""grades
+"""gradestable
 
-This module provides classes that can parse and process student grades stored
-in plain text tables. The table has the following form.
-
-| Header 1  | Header 2 | Eval 1  | Eval 2  |
-|           |          | max1    | max2    |
-|           |          | weight1 | weight2 |
-|-----------+----------+---------+---------|
-| A Name    | Info     | 45      |  56     |
-| An Other  | More Inf | 57      | 43      |
-
-Evaluations should have a name that starts with 'Test', 'Exam', 'Midterm',
-'Eval' or 'Quiz' in order to be recognized as evaluations. Each evaluation has
-a maximum grade and a weight towards the final grade. If a maximum is not
-given, a value of 100 is assumed. If a weight is not given, a value of 0 is
-assumed.
+This module provides a class that contains grades for students.
 
 The methods offered by GradesTable can compute the mean for each evaluation,
 the final grade of each student as well as the class mean for each evaluation.
 The class mean uses one of the columns to group the students.
 
 """
-
-
-from __future__ import print_function
 
 
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
@@ -34,14 +17,6 @@ __license__ = "BSD"
 from collections import defaultdict
 from copy import deepcopy
 import re
-
-
-def _to_float(val, default=100.):
-    """Convert string val into float with fallback value default."""
-    try:
-        return float(val)
-    except ValueError:
-        return default
 
 
 def _len(iterable):
@@ -64,29 +39,29 @@ class GradesFile(object):
     content of the file before and after the table.
 
     """
-    def __init__(self, fileh):
+    def __init__(self):
         """Initialize the GradesFile object by parsing fileh."""
         object.__init__(self)
         self.header = []
         self.footer = []
-        tablelines = []
+        tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
             fileh = open(fileh, 'r')
-        for line in fileh:
-            line = line.strip()
-            if not line.startswith('|'):
-                if not tablelines:
+        for row in fileh:
+            row = row.strip()
+            if not row.startswith('|'):
+                if not tablerows:
                     # Reading the header.
-                    self.header.append(line)
+                    self.header.append(row)
                 else:
                     # Reading the footer.
-                    self.footer.append(line)
+                    self.footer.append(row)
             else:
                 # Reading a table.
-                tablelines.append(line)
-        if len(tablelines) < 3:
+                tablerows.append(row)
+        if len(tablerows) < 3:
             raise Exception('Malformed table in file ' + fileh.name)
-        self.table = GradesTable(tablelines)
+        self.table = GradesTable(tablerows)
 
     def print_file(self, div_on=None, columns=None, tableonly=False):
         """Print the file and the table."""
@@ -99,33 +74,29 @@ class GradesFile(object):
             print('\n'.join(self.footer))
 
 
-class GradesTable(object):
+class GradesTable:
     """A GradesTable contains all the data in a table and can perform
     calculations and modify the table to include the results.
 
     """
-    def __init__(self, data=None):
+    def __init__(self, data=None, calc_char='*'):
         """Instanciate a new GradesTable.
 
         Input
         -----
-        data: list
-           A list of all the rows in the table.
+        data: GradesTable
+           A GradesTable to copy.
 
         """
-        object.__init__(self)
         self.columns = []
-        self.nb_header_rows = 3
         self.students = []
         self.footers = []
+        self.calc_char = calc_char
 
         if isinstance(data, GradesTable):
-            self.nb_header_rows = data.nb_header_rows
             self.columns = deepcopy(data.columns)
             self.students = deepcopy(data.students)
             self.footers = deepcopy(data.footers)
-        elif data:
-            self.__parse_data(data)
 
     def __getitem__(self, aslice):
         """A table can be indexed or sliced. The slicing mechanism work on rows
@@ -136,7 +107,6 @@ class GradesTable(object):
         """
         atable = GradesTable()
         atable.columns = deepcopy(self.columns)
-        atable.nb_header_rows = self.nb_header_rows
         if isinstance(aslice, slice):
             atable.students = self.students[aslice]
         else:
@@ -164,78 +134,42 @@ class GradesTable(object):
         return sumtable
 
     def __str__(self):
-        """String representation for the table using a TableWriter."""
-        writer = TableWriter(self)
-        return writer.as_str()
+        """Simple string representation for the table."""
+        return '\n'.join((str(self.columns),
+                          str(self.students),
+                          str(self.footers)))
 
-    def __parse_data(self, data):
-        """Parse lines into table row.
+    def __eq__(self, table):
+        """Test for equality."""
+        if (self.columns == table.columns and
+            self.students == table.students and
+            self.footers == table.footers and
+            self.calc_char == table.calc_char):
+            return True
+        return False
 
-        Input
-        -----
-        data: iterable
-           A list of all the rows in the table.
-
-        """
-        # The first three line contains columns headers. If a column
-        # corresponds to an evaluation, the first line is the title, the second
-        # line is the maximum grade and the third line is the weight.
-        # Otherwise, the first line is the title and the two other lines are
-        # ignored.
-        entry_sep = re.compile('\s*\|\s*')
-        header_lines = (entry_sep.split(line)[1:-1] for line in data[:3])
-        headers = zip(*header_lines)
-        for header in headers:
-            if header[0].startswith('/'):  # Reserved for calculated columns
-                continue
-            if header[0].upper().startswith(('TEST', 'EXAM', 'MIDTERM',
-                                             'QUIZ', 'FINAL', 'EVAL')):
-                evalu = {'max_grade': _to_float(header[1], 100.),
-                         'weight': _to_float(header[2], 0.)}
-                self.columns.append(
-                        {'title': header[0], 'is_num': True, 'evalu': evalu,
-                         'width': 0, 'to_print': True})
-            else:
-                self.columns.append(
-                        {'title': header[0], 'is_num': False, 'evalu': None,
-                         'width': 0, 'to_print': True})
-
-        # The next lines contain student records. Students are stored as a
-        # list of defaultdict keyed by column title with a str default factory.
-        for line in data[self.nb_header_rows:]:
-            if line.startswith('|-'):  # Separator line in the table
-                continue
-            student = defaultdict(str)
-            for i, entry in enumerate(entry_sep.split(line)[1:-1]):
-                if i >= len(self.columns) or entry.startswith('/'):
-                    break
-                if self.columns[i]['is_num']:
-                    student.update(
-                        [(self.columns[i]['title'], _to_float(entry, entry))])
-                else:
-                    # This is necessary to avoid casting groups numbers into
-                    # floats, which looks weird when printed.
-                    student.update([(self.columns[i]['title'], entry)])
-            if student:
-                self.students.append(student)
+    def __decorate(self, name):
+        """Concatenate name with the calc_char string."""
+        return self.calc_char + name + self.calc_char
 
     def compute_cumul(self):
         """Calculate the weighted mean for each student and add that result
         in a new column at the end of the table.
 
         """
+        cumul = self.__decorate('Cumul')
         for student in self.students:
-            student['/Cumul/'] = 0.
+            student[cumul] = 0.
             tot_weight = 0.
             for column in self.columns:
                 if column['evalu'] and isinstance(student[column['title']],
                         (float, int)):
-                    student['/Cumul/'] += (student[column['title']] *
+                    student[cumul] += (student[column['title']] *
                         column['evalu']['weight'] /
                         column['evalu']['max_grade'])
                     tot_weight += column['evalu']['weight']
-            student['/Cumul/'] /= (tot_weight or 1.) * 0.01
-        self.columns.append({'title': '/Cumul/', 'is_num': True,
+            student[cumul] /= (tot_weight or 1.) * 0.01
+        self.columns.append({'title': cumul, 'is_num': True,
                              'evalu': None, 'width': 0, 'to_print': True})
 
     def compute_mean(self, students=None, row_name='Mean'):
@@ -254,7 +188,7 @@ class GradesTable(object):
 
         """
         mean = defaultdict(str)
-        mean[self.columns[0]['title']] = '/' + row_name + '/'
+        mean[self.columns[0]['title']] = self.__decorate(row_name)
         if not students:
             students = self.students
         for column in self.columns[1:]:
@@ -313,7 +247,6 @@ class GradesTable(object):
             if not col_title in [col['title'] for col in self.columns]:
                 raise KeyError('%s is not a column title.' % col_title)
             sel_table.columns = deepcopy(self.columns)
-            sel_table.nb_header_rows = self.nb_header_rows
             if sep == '=':
                 sep = '=='
             for student in self.students:
