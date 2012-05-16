@@ -12,14 +12,6 @@ __license__ = "BSD"
 
 from collections import defaultdict
 from nose.tools import assert_equal, assert_not_equal, assert_almost_equal
-try:
-    import cStringIO as io
-except ImportError:
-    try:
-        import StringIO as io
-    except ImportError:
-        import io  # For Python 3
-import sys
 import grades
 
 
@@ -44,60 +36,6 @@ class TestGrablesTable(object):
 | /Mean 301/        |       |  23.00 |  45.00 |         |
 | /Mean 302/        |       |  67.00 |  78.00 |   79.00 |"""
 
-    output_str0 = """\
-| Name           | Group | Test 1 | Test 2 | Midterm |
-|                |       |  70.00 | 100.00 |  100.00 |
-|                |       |  10.00 |  10.00 |   30.00 |
-|----------------+-------+--------+--------+---------|
-| Eleonor Brochu | 302   |  67.00 |  78.00 |   80.00 |
-"""
-
-    output_str1 = """\
-| Name             | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
-|                  |       |  70.00 | 100.00 |  100.00 |         |
-|                  |       |  10.00 |  10.00 |   30.00 |         |
-|------------------+-------+--------+--------+---------+---------|
-| Bob Arthur       | 301   |  23.00 |  45.00 |         |    7.79 |
-| Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |   41.37 |
-| Albert Prévert   | 301   |        | ABS    |   78.00 |   23.40 |
-"""
-
-    output_str2 = """\
-| Name             | Group | Test 1 | Test 2 | Midterm |
-|                  |       |  70.00 | 100.00 |  100.00 |
-|                  |       |  10.00 |  10.00 |   30.00 |
-|------------------+-------+--------+--------+---------|
-| Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |
-| André Arthur     | 301   |  75.00 |  91.00 |   65.00 |
-|------------------+-------+--------+--------+---------|
-| Eleonor Brochu   | 302   |  67.00 |  78.00 |   80.00 |
-|------------------+-------+--------+--------+---------|
-| /Mean 301/       |       |  71.00 |  84.50 |   72.50 |
-| /Mean 302/       |       |  67.00 |  78.00 |   80.00 |
-"""
-
-    output_str3 = """\
-| Name             | Group | Test 1 | Test 2 | Midterm | /Cumul/ |
-|                  |       |  70.00 | 100.00 |  100.00 |         |
-|                  |       |  10.00 |  10.00 |   30.00 |         |
-|------------------+-------+--------+--------+---------+---------|
-| Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |   41.37 |
-| André Arthur     | 301   |  75.00 |  91.00 |   65.00 |   39.31 |
-|------------------+-------+--------+--------+---------+---------|
-| Eleonor Brochu   | 302   |  67.00 |  78.00 |   80.00 |   41.37 |
-|------------------+-------+--------+--------+---------+---------|
-| /Mean 301/       |       |  71.00 |  84.50 |   72.50 |         |
-| /Mean 302/       |       |  67.00 |  78.00 |   80.00 |         |
-"""
-
-    output_str4 = """\
-| Name          | Group | Test 1 | Test 2 | Midterm |
-|               |       |  70.00 | 100.00 |  100.00 |
-|               |       |  10.00 |  10.00 |   30.00 |
-|---------------+-------+--------+--------+---------|
-| Bob Arthur    | 301   |  23.00 |  45.00 |         |
-| Buster Keaton | 302   |  56.00 |  43.00 |   66.00 |
-"""
 
     def test_ignore_char(self):
         """Some rows and column should be ignored."""
