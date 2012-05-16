@@ -45,6 +45,24 @@ class TestGrablesTable(object):
         assert_not_equal(gtable1, gtable2)
         assert_equal(len(gtable2.footers), 0)
 
+    def test_cumul(self):
+        gtable = grades.parser.parse_table(self.in_str.split('\n')[:7])
+        gtable.compute_cumul()
+        students = [
+                {'Name': 'Bob Arthur', 'Group': '301',
+                    'Test 1': 23.00, 'Test 2': 45.00, 'Midterm': '',
+                    '*Cumul*': 38.9285714},
+                {'Name': 'Suzanne Tremblay', 'Group': '301',
+                    'Test 1': 67.00, 'Test 2': 78.00, 'Midterm': 80.,
+                    '*Cumul*': 82.7428571},
+                {'Name': 'Albert Prévert', 'Group': '301',
+                    'Test 1': '', 'Test 2': 'ABS', 'Midterm': 78.,
+                    '*Cumul*': 78.}]
+        assert_equal(gtable.columns[5]['title'], '*Cumul*')
+        for i, student in enumerate(students):
+            for key in student:
+                assert_almost_equal(student[key], gtable.students[i][key])
+
     def test_indexing(self):
         """Test indexing a GradesTable."""
         gtable = grades.parser.parse_table(self.in_str.split('\n'))

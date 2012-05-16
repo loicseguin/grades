@@ -10,6 +10,9 @@ The class mean uses one of the columns to group the students.
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
