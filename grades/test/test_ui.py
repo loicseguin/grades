@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 #-*- coding: utf-8 -*-
-"""test_runner
+"""test_ui
 
 """
 
@@ -17,11 +16,14 @@ except ImportError:
         import StringIO as io
     except ImportError:
         import io  # For Python 3
+import os
 import sys
-from grades import runner
+import tempfile
+from grades import ui
 
-class TestRunner(object):
-    out_str0 = """\
+class TestUI:
+    def setUp(self):
+        self.in_str = """\
 * Grades for MATH101.
 I wonder what happened to Bob Arthur's midterm and to Albert Prévert's Test
 1. Maybe they've eaten the salmon mousse.
@@ -34,6 +36,7 @@ I wonder what happened to Bob Arthur's midterm and to Albert Prévert's Test
 | Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |
 | Albert Prévert    | 301   |        | ABS    |   78.00 |
 | André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+|-------------------+-------+--------+--------+---------|
 | Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |
 | Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |
 | Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
@@ -44,25 +47,37 @@ I wonder what happened to Bob Arthur's midterm and to Albert Prévert's Test
 As an exercise, ask the students to count the number of pencils in their
 pencil case.
 """
+        self.fd, self.fname = tempfile.mkstemp()
+        of = open(self.fname, 'w')
+        of.write(self.in_str)
+        of.close()
+        self.old_stream = sys.stdout
+        sys.stdout = self.mystdout = io.StringIO()
+
+    def teardown(self):
+        os.close(self.fd)
+        os.unlink(self.fname)
+        sys.stdout = self.old_stream
+
     out_str1 = """\
-| Nom               | Group | Test 1 | /Cumul/ |
+| Nom               | Group | Test 1 | *Cumul* |
 |                   |       |  70.00 |         |
 |                   |       |  10.00 |         |
 |-------------------+-------+--------+---------|
-| Bob Arthur        | 301   |  23.00 |    7.79 |
-| Suzanne Tremblay  | 301   |  67.00 |   41.37 |
-| Albert Prévert    | 301   |        |   23.40 |
-| André Arthur      | 301   |  75.00 |   39.31 |
+| Bob Arthur        | 301   |  23.00 |   38.93 |
+| Suzanne Tremblay  | 301   |  67.00 |   82.74 |
+| Albert Prévert    | 301   |        |   78.00 |
+| André Arthur      | 301   |  75.00 |   78.63 |
 |-------------------+-------+--------+---------|
-| Roger Gagnon      | 302   |  67.00 |   41.37 |
-| Eleonor Brochu    | 302   |  67.00 |   41.37 |
-| Capitaine Haddock | 302   |  34.00 |   42.96 |
-| Buster Keaton     | 302   |  56.00 |   32.10 |
-| Alicia Keys       | 302   |  82.00 |   33.61 |
+| Roger Gagnon      | 302   |  67.00 |   82.74 |
+| Eleonor Brochu    | 302   |  67.00 |   82.74 |
+| Capitaine Haddock | 302   |  34.00 |   85.91 |
+| Buster Keaton     | 302   |  56.00 |   64.20 |
+| Alicia Keys       | 302   |  82.00 |   84.04 |
 |-------------------+-------+--------+---------|
-| /Mean/            |       |  58.88 |   33.70 |
-| /Mean 301/        |       |  55.00 |   27.97 |
-| /Mean 302/        |       |  61.20 |   38.28 |
+| *Mean*            |       |  58.88 |   75.33 |
+| *Mean 301*        |       |  55.00 |   69.57 |
+| *Mean 302*        |       |  61.20 |   79.93 |
 """
 
     out_str2 = """\
@@ -133,87 +148,65 @@ pencil case.
 |-----+-------+--------+--------+---------|
 """
 
-    def test_no_opt(self):
-        argv = ['examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str0.strip())
+    def check_output(self, argv, output_str):
+        ui.run(argv)
+        assert_equal(self.mystdout.getvalue().strip(), output_str.strip())
 
-    def test_all_opts(self):
-        argv = ['-mctd', 'Group', '-g', 'Group', '-C', 'Nom,Group,Test 1',
-                'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str1.strip())
+    #def test_no_opt(self):
+        #"""When called without any argument, grades tries to open Grades.txt
+        #and prints the file. In this case, Grades.txt does not exist and an
+        #error message should be printed out."""
+        #self.check_output([], "error: can't find file Grades.txt",
+                #out_stream=sys.stderr)
+
+    def test_print(self):
+        """Calling ``grades print fname`` should print the file fname without
+        any row separator between students."""
+        in_rows = self.in_str.split('\n')
+        out_str = '\n'.join(in_rows[:12] + in_rows[13:])
+        self.check_output(['print', self.fname], out_str)
+
+    def test_print_all_opts(self):
+        argv = ['print', '-mctd', 'Group', '-g', 'Group', '-C',
+                'Nom,Group,Test 1', self.fname]
+        self.check_output(argv, self.out_str1)
 
     def test_invalid_column_div(self):
-        argv = ['-d', 'Spam', 'examples/math101.txt']
-        assert_raises(ValueError, runner.run, argv)
+        argv = ['print', '-d', 'Spam', self.fname]
+        assert_raises(ValueError, ui.run, argv)
 
     def test_invalid_column_group(self):
-        argv = ['-g', 'Spam', 'examples/math101.txt']
-        assert_raises(ValueError, runner.run, argv)
+        argv = ['print', '-g', 'Spam', self.fname]
+        assert_raises(ValueError, ui.run, argv)
 
     def test_invalid_column_C(self):
-        argv = ['-tC', 'Nom,Spam,Test 1', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str2.strip())
+        argv = ['print', '-tC', 'Nom,Spam,Test 1', self.fname]
+        self.check_output(argv, self.out_str2)
 
     def test_select_name(self):
-        argv = ['-ts', 'Nom=Bob Arthur', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str3.strip())
+        argv = ['print', '-ts', 'Nom=Bob Arthur', self.fname]
+        self.check_output(argv, self.out_str3)
 
     def test_select_name2(self):
-        argv = ['-ts', 'Nom == Bob Arthur', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str3.strip())
+        argv = ['print', '-ts', 'Nom == Bob Arthur', self.fname]
+        self.check_output(argv, self.out_str3)
 
     def test_select_name3(self):
-        argv = ['-ts', 'Nom < Mon', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str4.strip())
+        argv = ['print', '-ts', 'Nom < Mon', self.fname]
+        self.check_output(argv, self.out_str4)
 
     def test_select_test_2(self):
-        argv = ['-ts', 'Test 2 >= 80', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str5.strip())
+        argv = ['print', '-ts', 'Test 2 >= 80', self.fname]
+        self.check_output(argv, self.out_str5)
 
     def test_select_ne(self):
-        argv = ['-ts', 'Test 2 != ABS', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str6.strip())
+        argv = ['print', '-ts', 'Test 2 != ABS', self.fname]
+        self.check_output(argv, self.out_str6)
 
     def test_invalid_select(self):
-        argv = ['-ts', 'Test / 2', 'examples/math101.txt']
-        assert_raises(Exception, runner.run, argv)
+        argv = ['print', '-ts', 'Test / 2', self.fname]
+        assert_raises(Exception, ui.run, argv)
 
     def test_select_empty(self):
-        argv = ['-ts', 'Test 2 = -1', 'examples/math101.txt']
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = io.StringIO()
-        runner.run(argv)
-        sys.stdout = old_stdout
-        assert_equal(mystdout.getvalue().strip(), self.out_str7.strip())
+        argv = ['print', '-ts', 'Test 2 = -1', self.fname]
+        self.check_output(argv, self.out_str7)

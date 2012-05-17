@@ -12,6 +12,48 @@ __license__ = "BSD"
 
 
 import sys
+from . import parser
+
+
+class GradesFile:
+    """A GradesFile contains one table of grades. The GradesFile
+    object is initialized with a filename. It takes care of safeguarding the
+    content of the file before and after the table.
+
+    """
+    def __init__(self, fileh):
+        """Initialize the GradesFile object by parsing fileh."""
+        self.header = []
+        self.footer = []
+        tablerows = []
+        if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
+            fileh = open(fileh, 'r')
+        for row in fileh:
+            row = row.strip()
+            if not row.startswith('|'):
+                if not tablerows:
+                    # Reading the header.
+                    self.header.append(row)
+                else:
+                    # Reading the footer.
+                    self.footer.append(row)
+            else:
+                # Reading a table.
+                tablerows.append(row)
+        if len(tablerows) < 3:
+            raise Exception('Malformed table in file ' + fileh.name)
+        self.table = parser.parse_table(tablerows)
+
+    def print_file(self, div_on=None, columns=None, tableonly=False,
+            file=sys.stdout):
+        """Print the file and the table."""
+        twriter = TableWriter(self.table)
+        if tableonly:
+            twriter.printt(div_on=div_on, columns=columns, file=file)
+        else:
+            print('\n'.join(self.header), file=file)
+            twriter.printt(div_on=div_on, columns=columns, file=file)
+            print('\n'.join(self.footer), file=file)
 
 
 def _len(iterable):
@@ -88,7 +130,7 @@ class TableWriter:
         """
         print(self.__str__(div_on=div_on, columns=columns), end='', file=file)
 
-    """Synonym for printt."""
+    # Synonym for printt.
     write = printt
 
     def header_str(self):

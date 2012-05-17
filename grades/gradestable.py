@@ -19,47 +19,6 @@ from copy import deepcopy
 import re
 
 
-class GradesFile(object):
-    """A GradesFile contains one table of grades. The GradesFile
-    object is initialized with a filename. It takes care of safeguarding the
-    content of the file before and after the table.
-
-    """
-    def __init__(self):
-        """Initialize the GradesFile object by parsing fileh."""
-        object.__init__(self)
-        self.header = []
-        self.footer = []
-        tablerows = []
-        if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
-            fileh = open(fileh, 'r')
-        for row in fileh:
-            row = row.strip()
-            if not row.startswith('|'):
-                if not tablerows:
-                    # Reading the header.
-                    self.header.append(row)
-                else:
-                    # Reading the footer.
-                    self.footer.append(row)
-            else:
-                # Reading a table.
-                tablerows.append(row)
-        if len(tablerows) < 3:
-            raise Exception('Malformed table in file ' + fileh.name)
-        self.table = GradesTable(tablerows)
-
-    def print_file(self, div_on=None, columns=None, tableonly=False):
-        """Print the file and the table."""
-        writer = TableWriter(self.table)
-        if tableonly:
-            writer.printt(div_on=div_on, columns=columns)
-        else:
-            print('\n'.join(self.header))
-            writer.printt(div_on=div_on, columns=columns)
-            print('\n'.join(self.footer))
-
-
 class GradesTable:
     """A GradesTable contains all the data in a table and can perform
     calculations and modify the table to include the results.
