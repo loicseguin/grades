@@ -33,6 +33,7 @@ __license__ = "BSD"
 from collections import defaultdict
 import re
 from .gradestable import GradesTable
+from . import defaults
 
 
 ROW_SEPS = ('--', '|-', '+-', '|=', '+=')
@@ -51,7 +52,7 @@ class TableMarkupError(Exception):
     """Exception raised when the table data contains a markup error."""
 
 
-def parse_table(data, ignore_char='*'):
+def parse_table(data, ignore_char=defaults.ignore_char):
     """Parse lines into table row.
 
     Input

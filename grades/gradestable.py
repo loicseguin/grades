@@ -17,6 +17,7 @@ __license__ = "BSD"
 from collections import defaultdict
 from copy import deepcopy
 import re
+from . import defaults
 
 
 class GradesTable:
@@ -24,7 +25,7 @@ class GradesTable:
     calculations and modify the table to include the results.
 
     """
-    def __init__(self, data=None, calc_char='*'):
+    def __init__(self, data=None, calc_char=defaults.calc_char):
         """Instanciate a new GradesTable.
 
         Input

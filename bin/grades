@@ -9,8 +9,9 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-import grades
+from grades import ui
 
 
 if __name__ == '__main__':
-    grades.runner.run()
+    runner = ui.Runner()
+    runner.run()

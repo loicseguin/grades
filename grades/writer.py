@@ -12,6 +12,7 @@ __license__ = "BSD"
 
 
 import sys
+from . import defaults
 from . import parser
 
 
@@ -21,7 +22,7 @@ class GradesFile:
     content of the file before and after the table.
 
     """
-    def __init__(self, fileh, ignore_char='*'):
+    def __init__(self, fileh, ignore_char=defaults.ignore_char):
         """Initialize the GradesFile object by parsing fileh."""
         self.header = []
         self.footer = []
@@ -73,8 +74,10 @@ def _len(iterable):
 class TableWriter:
     """A TableWriter takes care of formatting and printing a GradesTable."""
 
-    def __init__(self, grade_table, min_width=5, padding_left=1,
-            padding_right=1, precision=2):
+    def __init__(self, grade_table, min_width=defaults.min_cell_width,
+                 padding_left=defaults.padding_left,
+                 padding_right=defaults.padding_right,
+                 precision=defaults.precision):
         """Initialize the writer. The default parameters for a writer are to
         use a minimum column width of 5, left and right padding of 1 and a
         precision for floating point values of 2.
