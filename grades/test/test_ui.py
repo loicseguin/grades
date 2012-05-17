@@ -53,6 +53,7 @@ pencil case.
         of.close()
         self.old_stream = sys.stdout
         sys.stdout = self.mystdout = io.StringIO()
+        self.runner = ui.Runner()
 
     def teardown(self):
         os.close(self.fd)
@@ -149,7 +150,7 @@ pencil case.
 """
 
     def check_output(self, argv, output_str):
-        ui.run(argv)
+        self.runner.run(argv)
         assert_equal(self.mystdout.getvalue().strip(), output_str.strip())
 
     #def test_no_opt(self):
@@ -173,11 +174,11 @@ pencil case.
 
     def test_invalid_column_div(self):
         argv = ['print', '-d', 'Spam', self.fname]
-        assert_raises(ValueError, ui.run, argv)
+        assert_raises(ValueError, self.runner.run, argv)
 
     def test_invalid_column_group(self):
         argv = ['print', '-g', 'Spam', self.fname]
-        assert_raises(ValueError, ui.run, argv)
+        assert_raises(ValueError, self.runner.run, argv)
 
     def test_invalid_column_C(self):
         argv = ['print', '-tC', 'Nom,Spam,Test 1', self.fname]
@@ -205,7 +206,7 @@ pencil case.
 
     def test_invalid_select(self):
         argv = ['print', '-ts', 'Test / 2', self.fname]
-        assert_raises(Exception, ui.run, argv)
+        assert_raises(Exception, self.runner.run, argv)
 
     def test_select_empty(self):
         argv = ['print', '-ts', 'Test 2 = -1', self.fname]

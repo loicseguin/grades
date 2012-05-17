@@ -21,7 +21,7 @@ class GradesFile:
     content of the file before and after the table.
 
     """
-    def __init__(self, fileh):
+    def __init__(self, fileh, ignore_char='*'):
         """Initialize the GradesFile object by parsing fileh."""
         self.header = []
         self.footer = []
@@ -42,12 +42,12 @@ class GradesFile:
                 tablerows.append(row)
         if len(tablerows) < 3:
             raise Exception('Malformed table in file ' + fileh.name)
-        self.table = parser.parse_table(tablerows)
+        self.table = parser.parse_table(tablerows, ignore_char=ignore_char)
 
     def print_file(self, div_on=None, columns=None, tableonly=False,
-            file=sys.stdout):
+            file=sys.stdout, **kwargs):
         """Print the file and the table."""
-        twriter = TableWriter(self.table)
+        twriter = TableWriter(self.table, **kwargs)
         if tableonly:
             twriter.printt(div_on=div_on, columns=columns, file=file)
         else:
@@ -73,16 +73,17 @@ def _len(iterable):
 class TableWriter:
     """A TableWriter takes care of formatting and printing a GradesTable."""
 
-    def __init__(self, grade_table):
+    def __init__(self, grade_table, min_width=5, padding_left=1,
+            padding_right=1, precision=2):
         """Initialize the writer. The default parameters for a writer are to
         use a minimum column width of 5, left and right padding of 1 and a
         precision for floating point values of 2.
 
         """
-        self.min_width = 5
-        self.padding_left = 1
-        self.padding_right = 1
-        self.precision = 2
+        self.min_width = min_width
+        self.padding_left = padding_left
+        self.padding_right = padding_right
+        self.precision = precision
         self.table = grade_table
         self.columns_to_print = {}
         for column in self.table.columns:
