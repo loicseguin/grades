@@ -3,7 +3,7 @@
 defaults
 ========
 
-Default values for constants use throughout the program.
+Default values for constants used throughout the program.
 
 """
 

@@ -163,3 +163,55 @@ class TestTableWriter:
         """Test selection of columns."""
         self.check_printed_table(self.output_str5, self.gtable,
                                  columns=['Nom', 'Test 2'])
+
+    def test_simple_rst(self):
+        """Test reStructuredText simple table format writer."""
+        mystdout = io.StringIO()
+        subtable = self.gtable[1:7:2]
+        subtable.compute_grouped_mean('Group')
+        subtable.compute_cumul()
+        writer = grades.writer.SimpleRSTWriter(subtable)
+        writer.write(file=mystdout, div_on=('Group',))
+        table_str = """\
+================== ======= ======== ======== ========= =========
+ Nom                Group   Test 1   Test 2   Midterm   *Cumul* 
+                             70.00   100.00    100.00           
+                             10.00    10.00     30.00           
+================== ======= ======== ======== ========= =========
+ Suzanne Tremblay   301      67.00    78.00     80.00     82.74 
+ André Arthur       301      75.00    91.00     65.00     78.63 
+------------------ ------- -------- -------- --------- ---------
+ Eleonor Brochu     302      67.00    78.00     80.00     82.74 
+------------------ ------- -------- -------- --------- ---------
+ *Mean 301*                  71.00    84.50     72.50           
+ *Mean 302*                  67.00    78.00     80.00           
+================== ======= ======== ======== ========= =========
+"""
+        assert_equal(mystdout.getvalue(), table_str)
+
+    def test_grid_rst(self):
+        """Test reStructuredText simple table format writer."""
+        mystdout = io.StringIO()
+        subtable = self.gtable[1:7:2]
+        subtable.compute_grouped_mean('Group')
+        subtable.compute_cumul()
+        writer = grades.writer.GridRSTWriter(subtable)
+        writer.write(file=mystdout, div_on=('Group',))
+        table_str = """\
++------------------+-------+--------+--------+---------+---------+
+| Nom              | Group | Test 1 | Test 2 | Midterm | *Cumul* |
+|                  |       |  70.00 | 100.00 |  100.00 |         |
+|                  |       |  10.00 |  10.00 |   30.00 |         |
++==================+=======+========+========+=========+=========+
+| Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |   82.74 |
++------------------+-------+--------+--------+---------+---------+
+| André Arthur     | 301   |  75.00 |  91.00 |   65.00 |   78.63 |
++------------------+-------+--------+--------+---------+---------+
+| Eleonor Brochu   | 302   |  67.00 |  78.00 |   80.00 |   82.74 |
++------------------+-------+--------+--------+---------+---------+
+| *Mean 301*       |       |  71.00 |  84.50 |   72.50 |         |
++------------------+-------+--------+--------+---------+---------+
+| *Mean 302*       |       |  67.00 |  78.00 |   80.00 |         |
++------------------+-------+--------+--------+---------+---------+
+"""
+        assert_equal(mystdout.getvalue(), table_str)

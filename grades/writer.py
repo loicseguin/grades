@@ -72,8 +72,24 @@ def _len(iterable):
 
 
 class TableWriter:
-    """A TableWriter takes care of formatting and printing a GradesTable."""
+    """A TableWriter takes care of formatting and printing a GradesTable.
+    Write the table using the table format from org-mode.
 
+    The format looks as follows::
+
+        | Nom              | Group | Test 1 | Test 2 | Midterm | *Cumul* |
+        |                  |       |  70.00 | 100.00 |  100.00 |         |
+        |                  |       |  10.00 |  10.00 |   30.00 |         |
+        |------------------+-------+--------+--------+---------+---------|
+        | Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |   82.74 |
+        | André Arthur     | 301   |  75.00 |  91.00 |   65.00 |   78.63 |
+        |------------------+-------+--------+--------+---------+---------|
+        | Eleonor Brochu   | 302   |  67.00 |  78.00 |   80.00 |   82.74 |
+        |------------------+-------+--------+--------+---------+---------|
+        | *Mean 301*       |       |  71.00 |  84.50 |   72.50 |         |
+        | *Mean 302*       |       |  67.00 |  78.00 |   80.00 |         |
+
+    """
     def __init__(self, grade_table, min_width=defaults.min_cell_width,
                  padding_left=defaults.padding_left,
                  padding_right=defaults.padding_right,
@@ -111,7 +127,7 @@ class TableWriter:
             for column in self.table.columns:
                 title = column['title']
                 self.columns_to_print[title] = title in columns
-        self.__set_columns_width()
+        self._set_columns_width()
         return self.header_str() + self.rows_str(div_on) + self.footer_str()
 
     def printt(self, div_on=None, columns=None, file=sys.stdout):
@@ -140,7 +156,8 @@ class TableWriter:
     def header_str(self):
         """Generate a string containing the header for the table."""
         # Column names row.
-        str_hdr = self.__row_str(col['title'] for col in self.table.columns)
+        str_hdr = self._div_top()
+        str_hdr += self._row_str(col['title'] for col in self.table.columns)
 
         # Max and weight rows. These are filled only for evaluation columns.
         max_row = []
@@ -152,8 +169,8 @@ class TableWriter:
             else:
                 max_row.append('')
                 weight_row.append('')
-        str_hdr += self.__row_str(max_row) + self.__row_str(weight_row)
-        str_hdr += self.__div_row()
+        str_hdr += self._row_str(max_row) + self._row_str(weight_row)
+        str_hdr += self._div_head()
         return str_hdr
 
     def rows_str(self, div_on=None):
@@ -184,41 +201,24 @@ class TableWriter:
                 curs = [student[ctitle] for ctitle in div_on]
                 for prev, cur in zip(prevs, curs):
                     if prev != cur:
-                        str_tbl += self.__div_row()
+                        str_tbl += self._div_row()
                         break
                 prevs = curs
-            str_tbl += self.__row_str(student[ctitle] for ctitle in col_titles)
+            str_tbl += self._row_str(student[ctitle] for ctitle in col_titles)
         return str_tbl
-
-    def print_rows(self, div_on=None):
-        """Print the data rows.
-
-        Parameters
-        ----------
-        div_on: tuple
-           Horizontal divisions will be written between rows for which one of
-           the values in the div_on tuple are different. div_on should contain
-           column titles.
-
-        """
-        print(self.rows_str(div_on), end='')
 
     def footer_str(self):
         """Generate string for the footer of the table."""
         str_ftr = ''
         if self.table.footers:
-            str_ftr += self.__div_row()
+            str_ftr += self._div_row()
             col_titles = [col['title'] for col in self.table.columns]
             for footer in self.table.footers:
-                str_ftr += self.__row_str(footer[ctitle] for ctitle in
+                str_ftr += self._row_str(footer[ctitle] for ctitle in
                         col_titles)
-        return str_ftr
+        return str_ftr + self._div_bottom()
 
-    def print_footer(self):
-        """Print footer for the table."""
-        print(self.footer_str(), end='')
-
-    def __set_columns_width(self):
+    def _set_columns_width(self):
         """Find the width of each column. The width of a column is the maximum
         width of an entry in this column plus the padding.
 
@@ -243,11 +243,8 @@ class TableWriter:
             column['width'] = (self.padding_left + self.padding_right +
                                max(_len(str(row)) for row in col_contents))
 
-    def __row_str(self, row):
-        """Create a string representation for a row in the table. The columns
-        corresponding to evaluations have their numbers justified right.
-
-        """
+    def _pad_cells(self, row):
+        """Return list of padded cells."""
         padded = []
         for i, rowelmt in enumerate(row):
             col = self.table.columns[i]
@@ -265,11 +262,171 @@ class TableWriter:
             else:
                 padded.append(' ' * self.padding_left + str(rowelmt)
                         + ' ' * (width - _len(rowelmt) - self.padding_left))
+        return padded
+
+    def _row_str(self, row):
+        """Create a string representation for a row in the table. The columns
+        corresponding to evaluations have their numbers justified right.
+
+        """
+        padded = self._pad_cells(row)
         return '|' + '|'.join(padded) + '|\n'
 
-    def __div_row(self):
-        """Return a division that looks like |-----+------+------|."""
+    def _div_row(self):
+        """Return a division to separate student rows.
+        Such a division looks like |-----+------+------|."""
         div = '|' + '+'.join('-' * col['width'] for col in
                              self.table.columns if
                              self.columns_to_print[col['title']])
         return div + '|\n'
+
+    def _div_top(self):
+        """Return a division for the top of the table."""
+        return ''
+
+    def _div_bottom(self):
+        """Return a division for the bottom of the table."""
+        return ''
+
+    def _div_head(self):
+        """Return a division to separate the header from the rest of the table.
+        Such a division looks like |-----+------+------|."""
+        return self._div_row()
+
+
+class SimpleRSTWriter(TableWriter):
+    """Write the table using the simple table format from reStructuredText.
+
+    The format looks as follows::
+
+        ================== ======= ======== ======== ========= =========
+         Nom                Group   Test 1   Test 2   Midterm   *Cumul* 
+                                     70.00   100.00    100.00           
+                                     10.00    10.00     30.00           
+        ================== ======= ======== ======== ========= =========
+         Suzanne Tremblay   301      67.00    78.00     80.00     82.74 
+         André Arthur       301      75.00    91.00     65.00     78.63 
+        ------------------ ------- -------- -------- --------- ---------
+         Eleonor Brochu     302      67.00    78.00     80.00     82.74 
+        ------------------ ------- -------- -------- --------- ---------
+         *Mean 301*                  71.00    84.50     72.50           
+         *Mean 302*                  67.00    78.00     80.00           
+        ================== ======= ======== ======== ========= =========
+
+    """
+    def _row_str(self, row):
+        """Create a string representation for a row in the table. The columns
+        corresponding to evaluations have their numbers justified right.
+
+        """
+        padded = self._pad_cells(row)
+        return ' '.join(padded) + '\n'
+
+    def _div_row(self):
+        """Return a division that looks like '------- ------ ----- -------'."""
+        div = ' '.join('-' * col['width'] for col in
+                             self.table.columns if
+                             self.columns_to_print[col['title']])
+        return div + '\n'
+
+    def _div_top(self):
+        """Return a division for the top of the table.
+        Such a division looks like '======= ====== ===== ======='."""
+        div = ' '.join('=' * col['width'] for col in
+                             self.table.columns if
+                             self.columns_to_print[col['title']])
+        return div + '\n'
+
+    def _div_bottom(self):
+        """Return a division for the bottom of the table.
+        Such a division looks like '======= ====== ===== ======='."""
+        return self._div_top()
+
+    def _div_head(self):
+        """Return a division to separate the header from the rest of the table.
+        Such a division looks like '======= ====== ===== ======='."""
+        return self._div_top()
+
+
+class GridRSTWriter(TableWriter):
+    """Write the table using the grid table format from reStructuredText.
+
+    The format looks as follows::
+
+        +------------------+-------+--------+--------+---------+---------+
+        | Nom              | Group | Test 1 | Test 2 | Midterm | *Cumul* |
+        |                  |       |  70.00 | 100.00 |  100.00 |         |
+        |                  |       |  10.00 |  10.00 |   30.00 |         |
+        +==================+=======+========+========+=========+=========+
+        | Suzanne Tremblay | 301   |  67.00 |  78.00 |   80.00 |   82.74 |
+        +------------------+-------+--------+--------+---------+---------+
+        | André Arthur     | 301   |  75.00 |  91.00 |   65.00 |   78.63 |
+        +------------------+-------+--------+--------+---------+---------+
+        | Eleonor Brochu   | 302   |  67.00 |  78.00 |   80.00 |   82.74 |
+        +------------------+-------+--------+--------+---------+---------+
+        | *Mean 301*       |       |  71.00 |  84.50 |   72.50 |         |
+        +------------------+-------+--------+--------+---------+---------+
+        | *Mean 302*       |       |  67.00 |  78.00 |   80.00 |         |
+        +------------------+-------+--------+--------+---------+---------+
+
+    """
+    def _div_row(self):
+        """Return a division that looks like '+------+---------+-----+'."""
+        div = '+' + '+'.join('-' * col['width'] for col in
+                             self.table.columns if
+                             self.columns_to_print[col['title']])
+        return div + '+\n'
+
+    def _div_top(self):
+        """Return a division for the top of the table.
+        Such a division looks like '+------+---------+-----+'."""
+        return self._div_row()
+
+    def _div_bottom(self):
+        """Return a division for the bottom of the table.
+        Such a division looks like '+------+---------+-----+'."""
+        return self._div_row()
+
+    def _div_head(self):
+        """Return a division to separate the header from the rest of the table.
+        Such a division looks like '+======+=========+=====+'."""
+        div = '+' + '+'.join('=' * col['width'] for col in
+                             self.table.columns if
+                             self.columns_to_print[col['title']])
+        return div + '+\n'
+
+    def rows_str(self, div_on=None):
+        """Generate a string containing all the rows for the table.
+
+        Parameters
+        ----------
+        div_on: tuple
+            For reStructuredText tables, this parameter is ignored.
+
+        """
+        str_tbl = ''
+
+        if not self.table.students:
+            # Empty table, nothing to return.
+            return str_tbl
+
+        col_titles = [col['title'] for col in self.table.columns]
+        first = True
+        for student in self.table.students:
+            if not first:
+                str_tbl += self._div_row()
+            first = False
+            str_tbl += self._row_str(student[ctitle] for ctitle in col_titles)
+        return str_tbl
+
+    def footer_str(self):
+        """Generate string for the footer of the table."""
+        str_ftr = ''
+        if self.table.footers:
+            str_ftr += self._div_row()
+            col_titles = [col['title'] for col in self.table.columns]
+            for footer in self.table.footers:
+                str_ftr += self._row_str(footer[ctitle] for ctitle in
+                        col_titles)
+                str_ftr += self._div_row()
+        return str_ftr
