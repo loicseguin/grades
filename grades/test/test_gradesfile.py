@@ -168,6 +168,37 @@ created by the script. When the script reads the table, it will ignore these
 lines and columns.
 """
 
+    output_str5 = """\
+================== ======== ======== =========
+ Nom                Test 1   Test 2   *Cumul* 
+                     70.00   100.00           
+                     10.00    10.00           
+================== ======== ======== =========
+ Bob Arthur          23.00    45.00     38.93 
+------------------ -------- -------- ---------
+ Suzanne Tremblay    67.00    78.00     82.74 
+ Albert Prévert              ABS        78.00 
+------------------ -------- -------- ---------
+ *Mean*              45.00    61.50     66.56 
+================== ======== ======== =========
+"""
+
+    output_str6 = """\
++------------------+--------+--------+---------+
+| Nom              | Test 1 | Test 2 | *Cumul* |
+|                  |  70.00 | 100.00 |         |
+|                  |  10.00 |  10.00 |         |
++==================+========+========+=========+
+| Bob Arthur       |  23.00 |  45.00 |   38.93 |
++------------------+--------+--------+---------+
+| Suzanne Tremblay |  67.00 |  78.00 |   82.74 |
++------------------+--------+--------+---------+
+| Albert Prévert   |        | ABS    |   78.00 |
++------------------+--------+--------+---------+
+| *Mean*           |  45.00 |  61.50 |   66.56 |
++------------------+--------+--------+---------+
+"""
+
     def check_output(self, table_str, gfile, **kwargs):
         mystdout = io.StringIO()
         gfile.print_file(file=mystdout, **kwargs)
@@ -211,3 +242,22 @@ lines and columns.
         gfile.table.compute_mean()
         self.check_output(self.output_str4, gfile, div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'))
+
+    def test_simple_rst_format(self):
+        gfile = grades.writer.GradesFile(self.fname)
+        gfile.table.compute_cumul()
+        gfile.table.compute_mean()
+        gfile.table_format = 'simple_rst'
+        self.check_output(self.output_str5, gfile, div_on=('Group',),
+                         columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'),
+                         tableonly=True)
+
+    def test_grid_rst_format(self):
+        gfile = grades.writer.GradesFile(self.fname)
+        gfile.table.compute_cumul()
+        gfile.table.compute_mean()
+        gfile.table_format = 'grid_rst'
+        self.check_output(self.output_str6, gfile, div_on=('Group',),
+                         columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'),
+                         tableonly=True)
+
