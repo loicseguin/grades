@@ -25,6 +25,7 @@ class GradesFile:
     def __init__(self, fileh, ignore_char=defaults.ignore_char):
         """Initialize the GradesFile object by parsing fileh."""
         self.header = []
+        self.table_format = 'org'
         self.footer = []
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
@@ -48,7 +49,16 @@ class GradesFile:
     def print_file(self, div_on=None, columns=None, tableonly=False,
             file=sys.stdout, **kwargs):
         """Print the file and the table."""
-        twriter = TableWriter(self.table, **kwargs)
+        if self.table_format == 'simple_rst':
+            twriter = SimpleRSTWriter(self.table, **kwargs)
+        elif self.table_format == 'grid_rst':
+            twriter = GridRSTWriter(self.table, **kwargs)
+        else:
+            if self.table_format != 'org':
+                print(sys.argv[0] +
+                      ': error: invalid table format. '
+                      'Using org table format instead.', file=sys.stderr)
+            twriter = TableWriter(self.table, **kwargs)
         if tableonly:
             twriter.printt(div_on=div_on, columns=columns, file=file)
         else:
