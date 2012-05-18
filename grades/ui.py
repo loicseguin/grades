@@ -20,7 +20,7 @@ import os
 import sys
 from . import __version__
 from . import defaults
-from . import writer
+from . import writers
 from .gradestable import GradesTable
 
 
@@ -46,7 +46,7 @@ class Runner:
             print(e)
             return
 
-        gfile = writer.GradesFile(args.filename, self.ignore_char)
+        gfile = writers.GradesFile(args.filename, self.ignore_char)
         if self.calc_char != self.ignore_char:
             gfile.table.calc_char = self.calc_char
         if args.columns:
@@ -88,7 +88,7 @@ class Runner:
         args.filename = open(args.filename, 'w')
         table = GradesTable(calc_char=self.calc_char)
         table.columns = defaults.columns
-        table_writer = writer.TableWriter(table, min_width=self.min_cell_width,
+        table_writer = writers.TableWriter(table, min_width=self.min_cell_width,
                 padding_left=self.padding_left,
                 padding_right=self.padding_right, precision=self.precision)
         table_writer.write(file=args.filename)

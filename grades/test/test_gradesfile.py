@@ -207,7 +207,7 @@ lines and columns.
     def test_grouped_cumul_div(self):
         """Read the file and print it with the cumulative grade for each
         student as well as with divisions between groups."""
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_grouped_mean('Group')
         self.check_output(self.output_str, gfile, div_on=('Group',))
@@ -215,7 +215,7 @@ lines and columns.
     def test_grouped(self):
         """Calculate the grouped mean, grouping the students by the 'Group'
         column."""
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_grouped_mean('Group')
         self.check_output(self.output_str2, gfile)
 
@@ -225,26 +225,26 @@ lines and columns.
         tfile = os.fdopen(fdesc, 'w')
         tfile.write(self.file_str2)
         tfile.close()
-        assert_raises(Exception, grades.writer.GradesFile, fname)
+        assert_raises(Exception, grades.writers.GradesFile, fname)
         os.unlink(fname)
 
     def test_mean_div(self):
         """Calculate the mean and print the table with divisions between groups
         and test 1 results."""
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_mean()
         self.check_output(self.output_str3, gfile, div_on=('Group', 'Test 1'))
 
     def test_cols(self):
         """Write only certain columns of a table."""
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
         self.check_output(self.output_str4, gfile, div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'))
 
     def test_simple_rst_format(self):
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
         gfile.table_format = 'simple_rst'
@@ -253,7 +253,7 @@ lines and columns.
                          tableonly=True)
 
     def test_grid_rst_format(self):
-        gfile = grades.writer.GradesFile(self.fname)
+        gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
         gfile.table_format = 'grid_rst'
@@ -296,7 +296,7 @@ lines and columns.
         of.write(file_str)
         of.close()
 
-        gfile = grades.writer.GradesFile(fname)
+        gfile = grades.writers.GradesFile(fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
         self.check_output(self.output_str4, gfile, div_on=('Group',),
@@ -337,7 +337,7 @@ lines and columns.
         of.write(file_str)
         of.close()
 
-        gfile = grades.writer.GradesFile(fname)
+        gfile = grades.writers.GradesFile(fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
         self.check_output(self.output_str4, gfile, div_on=('Group',),

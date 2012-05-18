@@ -17,7 +17,7 @@ import grades
 
 class TestGrablesTable(object):
     def setUp(self):
-        self.tparser = grades.parser.TableParser()
+        self.tparser = grades.parsers.TableParser()
 
     """Test the functionalities of the GradesTable object."""
     in_str = """\
@@ -43,7 +43,7 @@ class TestGrablesTable(object):
     def test_ignore_char(self):
         """Some rows and column should be ignored."""
         gtable1 = self.tparser.parse(self.in_str.split('\n'))
-        tparser2 = grades.parser.TableParser(ignore_char='/')
+        tparser2 = grades.parsers.TableParser(ignore_char='/')
         gtable2 = tparser2.parse(self.in_str.split('\n'))
         assert_not_equal(gtable1, gtable2)
         assert_equal(len(gtable2.footers), 0)

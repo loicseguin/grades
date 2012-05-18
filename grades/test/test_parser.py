@@ -11,7 +11,7 @@ __license__ = "BSD"
 
 
 from nose.tools import assert_equal, assert_raises
-from grades import parser
+from grades import parsers
 
 
 class TestParser:
@@ -71,7 +71,7 @@ class TestParser:
 
 
     def check_table_str(self, table_str):
-        tparser = parser.TableParser()
+        tparser = parsers.TableParser()
         table = tparser.parse(table_str.strip().split('\n'))
         assert_equal(self.columns, table.columns)
         assert_equal(self.students, table.students)
@@ -83,6 +83,6 @@ class TestParser:
         self.check_table_str(self.org_table)
 
     def test_short_header(self):
-        tparser = parser.TableParser()
-        assert_raises(parser.TableMarkupError, tparser.parse,
+        tparser = parsers.TableParser()
+        assert_raises(parsers.TableMarkupError, tparser.parse,
                       self.too_short_header)

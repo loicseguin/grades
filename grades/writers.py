@@ -13,7 +13,7 @@ __license__ = "BSD"
 
 import sys
 from . import defaults
-from . import parser
+from . import parsers
 
 
 class GradesFile:
@@ -52,10 +52,10 @@ class GradesFile:
         if len(tablerows) < 3:
             raise Exception('Malformed table in file ' + fileh.name)
         if tablerows[0][0] == '=':
-            tparser = parser.SimpleRSTParser(tablerows[0],
+            tparser = parsers.SimpleRSTParser(tablerows[0],
                     ignore_char=ignore_char)
         else:
-            tparser = parser.TableParser(ignore_char=ignore_char)
+            tparser = parsers.TableParser(ignore_char=ignore_char)
         self.table = tparser.parse(tablerows)
 
     def print_file(self, div_on=None, columns=None, tableonly=False,

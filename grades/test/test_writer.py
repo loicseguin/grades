@@ -43,7 +43,7 @@ class TestTableWriter:
 | *Mean 301*        |       |  23.00 |  45.00 |         |
 | *Mean 302*        |       |  67.00 |  78.00 |   79.00 |"""
 
-        tparser = grades.parser.TableParser()
+        tparser = grades.parsers.TableParser()
         self.gtable = tparser.parse(in_str.split('\n'))
 
         self.output_str0 = """\
@@ -119,7 +119,7 @@ class TestTableWriter:
 
     def check_printed_table(self, table_str, table, **kwargs):
         mystdout = io.StringIO()
-        writer = grades.writer.TableWriter(table)
+        writer = grades.writers.TableWriter(table)
         writer.write(file=mystdout, **kwargs)
         assert_equal(mystdout.getvalue(), table_str)
 
@@ -171,7 +171,7 @@ class TestTableWriter:
         subtable = self.gtable[1:7:2]
         subtable.compute_grouped_mean('Group')
         subtable.compute_cumul()
-        writer = grades.writer.SimpleRSTWriter(subtable)
+        writer = grades.writers.SimpleRSTWriter(subtable)
         writer.write(file=mystdout, div_on=('Group',))
         table_str = """\
 ================== ======= ======== ======== ========= =========
@@ -196,7 +196,7 @@ class TestTableWriter:
         subtable = self.gtable[1:7:2]
         subtable.compute_grouped_mean('Group')
         subtable.compute_cumul()
-        writer = grades.writer.GridRSTWriter(subtable)
+        writer = grades.writers.GridRSTWriter(subtable)
         writer.write(file=mystdout, div_on=('Group',))
         table_str = """\
 +------------------+-------+--------+--------+---------+---------+
