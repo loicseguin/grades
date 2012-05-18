@@ -30,21 +30,33 @@ class GradesFile:
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
             fileh = open(fileh, 'r')
-        for row in fileh:
-            row = row.strip()
-            if not row.startswith('|'):
-                if not tablerows:
-                    # Reading the header.
-                    self.header.append(row)
-                else:
-                    # Reading the footer.
-                    self.footer.append(row)
-            else:
-                # Reading a table.
-                tablerows.append(row)
+        is_table = False
+        line = fileh.readline()
+        while line:
+            # Reading header
+            line = line.strip()
+            if line.startswith(('|', '+', '=')):
+                break
+            self.header.append(line)
+            line = fileh.readline()
+        while line.strip():
+            # Reading table
+            tablerows.append(line)
+            line = fileh.readline()
+        while line:
+            # Reading footer
+            line = line.strip()
+            self.footer.append(line)
+            line = fileh.readline()
+
         if len(tablerows) < 3:
             raise Exception('Malformed table in file ' + fileh.name)
-        self.table = parser.parse_table(tablerows, ignore_char=ignore_char)
+        if tablerows[0][0] == '=':
+            tparser = parser.SimpleRSTParser(tablerows[0],
+                    ignore_char=ignore_char)
+        else:
+            tparser = parser.TableParser(ignore_char=ignore_char)
+        self.table = tparser.parse(tablerows)
 
     def print_file(self, div_on=None, columns=None, tableonly=False,
             file=sys.stdout, **kwargs):
@@ -310,17 +322,17 @@ class SimpleRSTWriter(TableWriter):
     The format looks as follows::
 
         ================== ======= ======== ======== ========= =========
-         Nom                Group   Test 1   Test 2   Midterm   *Cumul* 
-                                     70.00   100.00    100.00           
-                                     10.00    10.00     30.00           
+         Nom                Group   Test 1   Test 2   Midterm   *Cumul*
+                                     70.00   100.00    100.00
+                                     10.00    10.00     30.00
         ================== ======= ======== ======== ========= =========
-         Suzanne Tremblay   301      67.00    78.00     80.00     82.74 
-         André Arthur       301      75.00    91.00     65.00     78.63 
+         Suzanne Tremblay   301      67.00    78.00     80.00     82.74
+         André Arthur       301      75.00    91.00     65.00     78.63
         ------------------ ------- -------- -------- --------- ---------
-         Eleonor Brochu     302      67.00    78.00     80.00     82.74 
+         Eleonor Brochu     302      67.00    78.00     80.00     82.74
         ------------------ ------- -------- -------- --------- ---------
-         *Mean 301*                  71.00    84.50     72.50           
-         *Mean 302*                  67.00    78.00     80.00           
+         *Mean 301*                  71.00    84.50     72.50
+         *Mean 302*                  67.00    78.00     80.00
         ================== ======= ======== ======== ========= =========
 
     """

@@ -43,7 +43,8 @@ class TestTableWriter:
 | *Mean 301*        |       |  23.00 |  45.00 |         |
 | *Mean 302*        |       |  67.00 |  78.00 |   79.00 |"""
 
-        self.gtable = grades.parser.parse_table(in_str.split('\n'))
+        tparser = grades.parser.TableParser()
+        self.gtable = tparser.parse(in_str.split('\n'))
 
         self.output_str0 = """\
 | Nom            | Group | Test 1 | Test 2 | Midterm |

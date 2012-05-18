@@ -71,7 +71,8 @@ class TestParser:
 
 
     def check_table_str(self, table_str):
-        table = parser.parse_table(table_str.strip().split('\n'))
+        tparser = parser.TableParser()
+        table = tparser.parse(table_str.strip().split('\n'))
         assert_equal(self.columns, table.columns)
         assert_equal(self.students, table.students)
 
@@ -82,5 +83,6 @@ class TestParser:
         self.check_table_str(self.org_table)
 
     def test_short_header(self):
-        assert_raises(parser.TableMarkupError, parser.parse_table,
+        tparser = parser.TableParser()
+        assert_raises(parser.TableMarkupError, tparser.parse,
                       self.too_short_header)

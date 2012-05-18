@@ -16,6 +16,9 @@ import grades
 
 
 class TestGrablesTable(object):
+    def setUp(self):
+        self.tparser = grades.parser.TableParser()
+
     """Test the functionalities of the GradesTable object."""
     in_str = """\
 | Name              | Group | Test 1 | Test 2 | Midterm |
@@ -39,14 +42,14 @@ class TestGrablesTable(object):
 
     def test_ignore_char(self):
         """Some rows and column should be ignored."""
-        gtable1 = grades.parser.parse_table(self.in_str.split('\n'))
-        gtable2 = grades.parser.parse_table(self.in_str.split('\n'),
-                ignore_char='/')
+        gtable1 = self.tparser.parse(self.in_str.split('\n'))
+        tparser2 = grades.parser.TableParser(ignore_char='/')
+        gtable2 = tparser2.parse(self.in_str.split('\n'))
         assert_not_equal(gtable1, gtable2)
         assert_equal(len(gtable2.footers), 0)
 
     def test_cumul(self):
-        gtable = grades.parser.parse_table(self.in_str.split('\n')[:7])
+        gtable = self.tparser.parse(self.in_str.split('\n')[:7])
         gtable.compute_cumul()
         students = [
                 {'Name': 'Bob Arthur', 'Group': '301',
@@ -65,7 +68,7 @@ class TestGrablesTable(object):
 
     def test_indexing(self):
         """Test indexing a GradesTable."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'))
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         subtable = gtable[5]
         assert_equal(len(subtable.students), 1)
         assert_equal(subtable.columns, gtable.columns)
@@ -75,7 +78,7 @@ class TestGrablesTable(object):
 
     def test_simple_slice(self):
         """Test slicing a GradesTable."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'))
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         subtable = gtable[0:3]
         students = [
                 {'Name': 'Bob Arthur', 'Group': '301',
@@ -90,7 +93,7 @@ class TestGrablesTable(object):
 
     def test_complex_slice(self):
         """Test a complex slice of a GradesTable."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'))
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         subtable = gtable[1:7:2]
         subtable.compute_grouped_mean('Group')
         students = [
@@ -111,8 +114,8 @@ class TestGrablesTable(object):
 
     def test_wrong_order(self):
         """Test computing mean before cumul. Works with defaultdict."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'),
-                ignore_char='/')
+        self.tparser.ignore_char = '/'
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         gtable.compute_grouped_mean('Group')
         gtable.compute_cumul()
         meanrows = [{'Name': '/Mean 301/', 'Test 1': 55., 'Test 2': 71.33,
@@ -125,7 +128,7 @@ class TestGrablesTable(object):
 
     def test_iteration(self):
         """Iterating over the table should go through the list of students."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n')[:7])
+        gtable = self.tparser.parse(self.in_str.split('\n')[:7])
         students = [
                 {'Name': 'Bob Arthur', 'Group': '301', 'Test 1': 23.00,
                  'Test 2': 45.00, 'Midterm': ''},
@@ -138,23 +141,23 @@ class TestGrablesTable(object):
 
     def test_copy(self):
         """Initializing a new table with another table creates a copy."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'))
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         gtable2 = grades.gradestable.GradesTable(gtable)
         assert_equal(gtable.students, gtable2.students)
         assert_equal(gtable.columns, gtable2.columns)
 
     def test_add_tables(self):
         """Add two tables."""
-        gtable1 = grades.parser.parse_table(self.in_str.split('\n')[:7])
-        gtable2 = grades.parser.parse_table(self.in_str.split('\n')[:4]
+        gtable1 = self.tparser.parse(self.in_str.split('\n')[:7])
+        gtable2 = self.tparser.parse(self.in_str.split('\n')[:4]
                                             + self.in_str.split('\n')[7:])
-        gtable = grades.parser.parse_table(self.in_str.split('\n'))
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         sumtable = gtable1 + gtable2
         assert_equal(gtable, sumtable)
 
     def test_add_student(self):
         """Add a student to a table."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n')[:7])
+        gtable = self.tparser.parse(self.in_str.split('\n')[:7])
         student = defaultdict(str, (('Name', 'André Arthur'), ('Group', '301'),
                     ('Test 1', 75.00), ('Test 2', 91.00), ('Midterm', 65.00)))
         sumtable = gtable + student
@@ -172,8 +175,8 @@ class TestGrablesTable(object):
 
     def test_select(self):
         """Test selection of students."""
-        gtable = grades.parser.parse_table(self.in_str.split('\n'),
-                ignore_char='/')
+        self.tparser.ignore_char = '/'
+        gtable = self.tparser.parse(self.in_str.split('\n'))
         stable = gtable.select('Test 2<46')
         students = [
                 {'Name': 'Bob Arthur', 'Group': '301', 'Test 1': 23.00,

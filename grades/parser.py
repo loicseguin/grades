@@ -36,7 +36,7 @@ from .gradestable import GradesTable
 from . import defaults
 
 
-ROW_SEPS = ('--', '|-', '+-', '|=', '+=')
+ROW_SEPS = ('--', '|-', '+-', '|=', '+=', '==')
 EVAL_NAMES = ('TEST', 'EXAM', 'MIDTERM', 'QUIZ', 'FINAL', 'EVAL')
 
 
@@ -52,76 +52,110 @@ class TableMarkupError(Exception):
     """Exception raised when the table data contains a markup error."""
 
 
-def parse_table(data, ignore_char=defaults.ignore_char):
-    """Parse lines into table row.
+class TableParser:
+    def __init__(self, ignore_char=defaults.ignore_char):
+        self.ignore_char = ignore_char
 
-    Input
-    -----
-    data: iterable
-       A list of all the rows in the table.
+    def split_row(self, row):
+        entry_sep = re.compile('\s*\|\s*')
+        return entry_sep.split(row)[1:-1]
 
-    ignore_char: string
-       Character (or string) that indicates a row or column that should be
-       ignored. A row or column header that starts with this character will be
-       ignored.
+    def parse_header(self, table, rows):
+        """The first three rows contains columns headers. If a column
+        corresponds to an evaluation, the first row is the title, the second
+        row is the maximum grade and the third row is the weight.
+        Otherwise, the first row is the title and the two other rows are
+        ignored.
 
-    Output
-    ------
-    table: GradesTable
+        """
+        header_rows = []
+        for end_headers, row in enumerate(rows):
+            if row.startswith(ROW_SEPS):
+                if end_headers == 0:
+                    continue
+                else:
+                    break
+            header_rows.append(self.split_row(row))
 
-    """
-    # The first three rows contains columns headers. If a column
-    # corresponds to an evaluation, the first row is the title, the second
-    # row is the maximum grade and the third row is the weight.
-    # Otherwise, the first row is the title and the two other rows are
-    # ignored.
-    entry_sep = re.compile('\s*\|\s*')
+        if len(header_rows) != 3:
+            raise TableMarkupError("There should be 3 header rows")
 
-    header_rows = []
-    for end_headers, row in enumerate(data):
-        if row.startswith(ROW_SEPS):
-            if end_headers == 0:
+        headers = zip(*header_rows)
+        for name, max_grade, weight in headers:
+            if name.startswith(self.ignore_char):  # Reserved for calculated columns
                 continue
+            if name.upper().startswith(EVAL_NAMES):
+                evalu = {'max_grade': _to_float(max_grade, 100.),
+                         'weight': _to_float(weight, 0.)}
+                table.columns.append(
+                        {'title': name, 'is_num': True, 'evalu': evalu, 'width': 0})
             else:
+                table.columns.append(
+                        {'title': name, 'is_num': False, 'evalu': None,
+                         'width': 0})
+        return end_headers
+
+    def parse(self, data):
+        """Parse lines into table row.
+
+        Input
+        -----
+        data: iterable
+           A list of all the rows in the table.
+
+        ignore_char: string
+           Character (or string) that indicates a row or column that should be
+           ignored. A row or column header that starts with this character will be
+           ignored.
+
+        Output
+        ------
+        table: GradesTable
+
+        """
+        table = GradesTable()
+        table.calc_char = self.ignore_char
+        end_headers = self.parse_header(table, data)
+
+        # The next rows contain student records. Students are stored as a
+        # list of defaultdict keyed by column title with a str default factory.
+        for row in data[end_headers + 1:]:
+            if row.startswith(ROW_SEPS):  # Separator row in the table
+                continue
+            student = defaultdict(str)
+            for i, entry in enumerate(self.split_row(row)):
+                if i >= len(table.columns) or entry.startswith(self.ignore_char):
+                    break
+                if table.columns[i]['is_num']:
+                    student.update(
+                        [(table.columns[i]['title'], _to_float(entry, entry))])
+                else:
+                    # This is necessary to avoid casting groups numbers into
+                    # floats, which looks weird when printed.
+                    student.update([(table.columns[i]['title'], entry)])
+            if student:
+                table.students.append(student)
+
+        return table
+
+class SimpleRSTParser(TableParser):
+    def __init__(self, first_row, ignore_char=defaults.ignore_char):
+        self.ignore_char = ignore_char
+
+        self.columns = []
+        col_start = first_row.find('=')
+        while col_start >= 0:
+            col_end = first_row.find(' ', col_start + 1)
+            if col_end == -1:
+                self.columns.append((col_start, None))
                 break
-        header_rows.append(entry_sep.split(row)[1:-1])
+            self.columns.append((col_start, col_end))
+            col_start = first_row.find('=', col_end + 1)
 
-    if len(header_rows) != 3:
-        raise TableMarkupError("There should be 3 header rows")
+    def split_row(self, row):
+        splitted = []
+        for col in self.columns:
+            splitted.append(row[col[0]:col[1]].strip())
+        return splitted
 
-    table = GradesTable()
-    table.calc_char = ignore_char
-    headers = zip(*header_rows)
-    for name, max_grade, weight in headers:
-        if name.startswith(ignore_char):  # Reserved for calculated columns
-            continue
-        if name.upper().startswith(EVAL_NAMES):
-            evalu = {'max_grade': _to_float(max_grade, 100.),
-                     'weight': _to_float(weight, 0.)}
-            table.columns.append(
-                    {'title': name, 'is_num': True, 'evalu': evalu, 'width': 0})
-        else:
-            table.columns.append(
-                    {'title': name, 'is_num': False, 'evalu': None,
-                     'width': 0})
 
-    # The next rows contain student records. Students are stored as a
-    # list of defaultdict keyed by column title with a str default factory.
-    for row in data[end_headers + 1:]:
-        if row.startswith(ROW_SEPS):  # Separator row in the table
-            continue
-        student = defaultdict(str)
-        for i, entry in enumerate(entry_sep.split(row)[1:-1]):
-            if i >= len(table.columns) or entry.startswith(ignore_char):
-                break
-            if table.columns[i]['is_num']:
-                student.update(
-                    [(table.columns[i]['title'], _to_float(entry, entry))])
-            else:
-                # This is necessary to avoid casting groups numbers into
-                # floats, which looks weird when printed.
-                student.update([(table.columns[i]['title'], entry)])
-        if student:
-            table.students.append(student)
-
-    return table
