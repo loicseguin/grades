@@ -49,7 +49,8 @@ class Runner:
         try:
             args.filename = open(args.filename)
         except IOError as e:
-            print(e)
+            print(e, file=sys.stderr)
+            #sys.exit(1)
             return
 
         gfile = writers.GradesFile(args.filename, self.ignore_char)

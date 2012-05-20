@@ -8,7 +8,7 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal, assert_raises, assert_true
 try:
     import cStringIO as io
 except ImportError:
@@ -160,6 +160,16 @@ pencil case.
         #error message should be printed out."""
         #self.check_output([], "error: can't find file Grades.txt",
                 #out_stream=sys.stderr)
+
+    def test_non_existing_file(self):
+        nonexistent = str(uuid.uuid1())
+        argv = ['print', nonexistent]
+        oldstderr = sys.stderr
+        sys.stderr = myerr = io.StringIO()
+        self.runner.run(argv)
+        sys.stderr = oldstderr
+        assert_true('No such file or directory'
+                    in myerr.getvalue().strip())
 
     def test_print(self):
         """Calling ``grades print fname`` should print the file fname without
