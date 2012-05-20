@@ -20,22 +20,23 @@ precision = 2
 padding_left = 1
 padding_right = 1
 min_cell_width = 5
+table_format = 'org'
 columns = [
         {'title': 'Name', 'is_num': False, 'evalu': None, 'width': 0},
         {'title': 'Group', 'is_num': False, 'evalu': None, 'width': 0},
         {'title': 'Test 1', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Test 2', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Test 3', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Midterm', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 100., 'weight': 30., 'width': 0}},
+            'evalu': {'max_grade': 100., 'weight': 30.}},
         {'title': 'Test 4', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Test 5', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Test 6', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 20., 'weight': 5., 'width': 0}},
+            'evalu': {'max_grade': 20., 'weight': 5.}},
         {'title': 'Final', 'is_num': True, 'width': 0,
-            'evalu': {'max_grade': 100., 'weight': 40., 'width': 0}}]
+            'evalu': {'max_grade': 100., 'weight': 40.}}]

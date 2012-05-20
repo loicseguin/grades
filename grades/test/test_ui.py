@@ -18,10 +18,11 @@ except ImportError:
         import io  # For Python 3
 import os
 import sys
+import uuid
 import tempfile
 from grades import ui
 
-class TestUI:
+class TestUIPrint:
     def setUp(self):
         self.in_str = """\
 * Grades for MATH101.
@@ -211,3 +212,80 @@ pencil case.
     def test_select_empty(self):
         argv = ['print', '-ts', 'Test 2 = -1', self.fname]
         self.check_output(argv, self.out_str7)
+
+
+class TestUIInit:
+    def setUp(self):
+        self.fname = str(uuid.uuid1())
+        self.runner = ui.Runner()
+
+    def teardown(self):
+        os.unlink(self.fname)
+
+    def check_output(self, argv, output_str):
+        self.runner.run(argv)
+        file_str = open(self.fname).read()
+        assert_equal(file_str.strip(), output_str.strip())
+
+    def test_init(self):
+        argv = ['init', self.fname]
+        init_table = """\
+| Name | Group | Test 1 | Test 2 | Test 3 | Midterm | Test 4 | Test 5 | Test 6 | Final |
+|      |       |  20.00 |  20.00 |  20.00 |  100.00 |  20.00 |  20.00 |  20.00 |100.00 |
+|      |       |   5.00 |   5.00 |   5.00 |   30.00 |   5.00 |   5.00 |   5.00 | 40.00 |
+|------+-------+--------+--------+--------+---------+--------+--------+--------+-------|
+"""
+        self.check_output(argv, init_table)
+
+    def test_init_simple_rst(self):
+        argv = ['init', self.fname, '-f', 'simple_rst']
+        init_table = """\
+====== ======= ======== ======== ======== ========= ======== ======== ======== =======
+ Name   Group   Test 1   Test 2   Test 3   Midterm   Test 4   Test 5   Test 6   Final 
+                 20.00    20.00    20.00    100.00    20.00    20.00    20.00  100.00 
+                  5.00     5.00     5.00     30.00     5.00     5.00     5.00   40.00 
+====== ======= ======== ======== ======== ========= ======== ======== ======== =======
+====== ======= ======== ======== ======== ========= ======== ======== ======== =======
+"""
+        self.check_output(argv, init_table)
+
+    def test_init_grid_rst(self):
+        argv = ['init', self.fname, '-f', 'grid_rst']
+        init_table = """\
++------+-------+--------+--------+--------+---------+--------+--------+--------+-------+
+| Name | Group | Test 1 | Test 2 | Test 3 | Midterm | Test 4 | Test 5 | Test 6 | Final |
+|      |       |  20.00 |  20.00 |  20.00 |  100.00 |  20.00 |  20.00 |  20.00 |100.00 |
+|      |       |   5.00 |   5.00 |   5.00 |   30.00 |   5.00 |   5.00 |   5.00 | 40.00 |
++======+=======+========+========+========+=========+========+========+========+=======+
+"""
+        self.check_output(argv, init_table)
+
+    def test_nbevals_1(self):
+        argv = ['init', '-n', '1', self.fname]
+        init_table = """\
+| Name | Group | Final |
+|      |       |100.00 |
+|      |       |100.00 |
+|------+-------+-------|
+"""
+        self.check_output(argv, init_table)
+
+    def test_nbevals_2(self):
+        argv = ['init', '-n', '2', self.fname]
+        init_table = """\
+| Name | Group | Midterm | Final |
+|      |       |  100.00 |100.00 |
+|      |       |   40.00 | 60.00 |
+|------+-------+---------+-------|
+"""
+        self.check_output(argv, init_table)
+
+    def test_nbevals_5(self):
+        argv = ['init', '-n', '5', self.fname]
+        init_table = """\
+| Name | Group | Test 1 | Test 2 | Midterm | Test 3 | Final |
+|      |       |  20.00 |  20.00 |  100.00 |  20.00 |100.00 |
+|      |       |  10.00 |  10.00 |   30.00 |  10.00 | 40.00 |
+|------+-------+--------+--------+---------+--------+-------|
+"""
+        self.check_output(argv, init_table)

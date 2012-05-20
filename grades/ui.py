@@ -23,6 +23,11 @@ from . import defaults
 from . import writers
 from .gradestable import GradesTable
 
+try:
+    if raw_input:
+        input = raw_input
+except NameError:
+    pass
 
 class Runner:
     def __init__(self):
@@ -35,6 +40,7 @@ class Runner:
         self.padding_left = defaults.padding_left
         self.padding_right = defaults.padding_right
         self.min_cell_width = defaults.min_cell_width
+        self.columns = defaults.columns
 
     def read_config(self):
         pass
@@ -67,6 +73,8 @@ class Runner:
         if args.groups:
             for group in args.groups:
                 gfile.table.compute_grouped_mean(group_by=group)
+        if args.table_format:
+            gfile.table_format = args.table_format
         #if args.output:
             #output = arg.output
         #else:
@@ -78,23 +86,113 @@ class Runner:
                          padding_right=self.padding_right,
                          precision=self.precision)
 
+    def _calc_weights(self, nbevals):
+        if nbevals < 1:
+            print(sys.argv[0] +
+                ' init: error: argument -n/--nbevals: must be greater than 0',
+                file=sys.stderr)
+            sys.exit(1)
+        if nbevals == 1:
+            midterm_weight = 0.
+            final_weight = 100.
+            test_weight = 0.
+        elif nbevals == 2:
+            midterm_weight = 40.
+            final_weight = 60.
+            test_weight = 0.
+        else:
+            midterm_weight = 30.
+            final_weight = 40.
+            test_weight = 30. / (nbevals - 2)
+        return final_weight, midterm_weight, test_weight
+
     def init(self, args):
         if os.path.exists(args.filename):
             print('Do you want to overwrite the file ' + args.filename +
                   '? [y/N]  ', end='')
-            answer = raw_input()
+            answer = input()
             if not answer.lower() in ('y', 'yes'):
                 return
         args.filename = open(args.filename, 'w')
         table = GradesTable(calc_char=self.calc_char)
-        table.columns = defaults.columns
-        table_writer = writers.TableWriter(table, min_width=self.min_cell_width,
+        table.columns = self.columns
+        if args.nbevals:
+            for col in table.columns[:]:
+                if col['evalu']:
+                    table.columns.remove(col)
+
+            final_w, midterm_w, test_w= self._calc_weights(args.nbevals)
+
+            for i in range((args.nbevals - 1) // 2):
+                table.columns.append(
+                    {'title': 'Test ' + str(i + 1), 'is_num': True, 'width': 0,
+                     'evalu': {'max_grade': 20., 'weight': test_w}})
+            if midterm_w> 0:
+                table.columns.append(
+                    {'title': 'Midterm', 'is_num': True, 'width': 0,
+                     'evalu': {'max_grade': 100., 'weight': midterm_w}})
+            for i in range((args.nbevals - 1) // 2, args.nbevals - 2):
+                table.columns.append(
+                    {'title': 'Test ' + str(i + 1), 'is_num': True, 'width': 0,
+                     'evalu': {'max_grade': 20., 'weight': test_w}})
+            table.columns.append(
+                {'title': 'Final', 'is_num': True, 'width': 0,
+                 'evalu': {'max_grade': 100., 'weight': final_w}})
+        table_writer = writers.TableWriter
+        if args.table_format:
+            if args.table_format == 'simple_rst':
+                table_writer = writers.SimpleRSTWriter
+            elif args.table_format == 'grid_rst':
+                table_writer = writers.GridRSTWriter
+        table_writer = table_writer(table, min_width=self.min_cell_width,
                 padding_left=self.padding_left,
                 padding_right=self.padding_right, precision=self.precision)
         table_writer.write(file=args.filename)
         args.filename.close()
 
-    def add(self, args):
+    def add_column(self, args):
+        gfile = writers.GradesFile(args.filename, self.ignore_char)
+        col_name = input('Enter column name: ')
+        if col_name in [col['title'] for col in gfile.table.columns]:
+            print(sys.argv[0] +
+                ' add column: error: column name already in table',
+                file=sys.stderr)
+            sys.exit(1)
+        position = input('Enter column number [' +
+                         str(len(gfile.table.columns)) + ']: ')
+        if position == '':
+            position = len(gfile.table.columns)
+        else:
+            position = int(position)
+            if position < 0 or position > len(gfile.table.columns):
+                print(sys.argv[0] +
+                    ' add column: error: invalid column number',
+                    file=sys.stderr)
+                sys.exit(1)
+
+        is_eval = input('Is this column an evaluation? [Y/n] ')
+        if is_eval.lower() not in ('n', 'no'):
+            max_grade = float(
+                    input('What is the maximum grade for this evaluation? '))
+            weight = float(
+                    input('What is the weight for this evaluation? '))
+            gfile.table.columns.insert(position,
+                {'title': col_name, 'is_num': True, 'width': 0,
+                 'evalu': {'max_grade': max_grade, 'weight': weight}})
+        else:
+            gfile.table.columns.insert(position,
+                {'title': col_name, 'is_num': False, 'width': 0,
+                 'evalu': None})
+
+        ofile = open(args.filename, 'w')
+        gfile.print_file(file=ofile,
+                         min_width=self.min_cell_width,
+                         padding_left=self.padding_left,
+                         padding_right=self.padding_right,
+                         precision=self.precision)
+        ofile.close()
+
+    def add_student(self, args):
         pass
 
     def run(self, argv=sys.argv[1:]):
@@ -128,6 +226,9 @@ class Runner:
         printparser.add_argument('-g', '--grouped', dest='groups',
                 help='print the mean for each GROUP for each evaluation; '
                      + 'GROUP must be a column title')
+        printparser.add_argument('-f', '--format', dest='table_format',
+                help='table format for printing (org, simple_rst, grid_rst)',
+                choices=['org', 'simple_rst', 'grid_rst'])
         printparser.add_argument('-s', '--students',
                 help='expression specifying students to print')
         #printparser.add_argument('-o', '--output', type=argparse.FileType('w'),
@@ -138,15 +239,29 @@ class Runner:
         printparser.set_defaults(func=self.print_table)
 
         initparser = subparsers.add_parser('init',
-                                           help='initialize a new grades file')
+                help='initialize a new grades file')
         initparser.add_argument('filename', nargs='?',
                 help='file where grades table skeleton will be written',
                 default=self.output_filename)
+        initparser.add_argument('-f', '--format', dest='table_format',
+                help='table format for printing (org, simple_rst, grid_rst)',
+                choices=['org', 'simple_rst', 'grid_rst'])
+        initparser.add_argument('-n', '--nbevals', type=int,
+                help='number of evaluations in table')
         initparser.set_defaults(func=self.init)
 
         addparser = subparsers.add_parser('add',
-                                          help='add a new student or evaluation')
-        addparser.set_defaults(func=self.add)
+                help='add a new student or evaluation')
+        sub_add = addparser.add_subparsers()
+        add_column_parser = sub_add.add_parser('column',
+                help='add a new column')
+        add_column_parser.add_argument('filename',
+                help='grades file to read and parse', nargs='?',
+                default=self.input_filename)
+        add_student_parser = sub_add.add_parser('student',
+                help='add a new student')
+        add_column_parser.set_defaults(func=self.add_column)
+        add_student_parser.set_defaults(func=self.add_student)
 
         args = clparser.parse_args(argv)
         args.func(args)

@@ -25,7 +25,7 @@ class GradesFile:
     def __init__(self, fileh, ignore_char=defaults.ignore_char):
         """Initialize the GradesFile object by parsing fileh."""
         self.header = []
-        self.table_format = 'org'
+        self.table_format = defaults.table_format
         self.footer = []
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
