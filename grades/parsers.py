@@ -53,10 +53,15 @@ class TableMarkupError(Exception):
 
 
 class TableParser:
-    def __init__(self, ignore_char=defaults.ignore_char):
+    """A table parser can read a list of rows and convert them into a
+    GradesTable data structure. The rows have to follow the 'org' or the 'grid
+    rst' table formats."""
+
+    def __init__(self, ignore_char=defaults.IGNORE_CHAR):
         self.ignore_char = ignore_char
 
     def split_row(self, row):
+        """Split a row into cells using the ``|`` character as a separator."""
         entry_sep = re.compile('\s*\|\s*')
         return entry_sep.split(row)[1:-1]
 
@@ -82,13 +87,15 @@ class TableParser:
 
         headers = zip(*header_rows)
         for name, max_grade, weight in headers:
-            if name.startswith(self.ignore_char):  # Reserved for calculated columns
+            if name.startswith(self.ignore_char):
+                # Reserved for calculated columns
                 continue
             if name.upper().startswith(EVAL_NAMES):
                 evalu = {'max_grade': _to_float(max_grade, 100.),
                          'weight': _to_float(weight, 0.)}
                 table.columns.append(
-                        {'title': name, 'is_num': True, 'evalu': evalu, 'width': 0})
+                        {'title': name, 'is_num': True, 'evalu': evalu,
+                         'width': 0})
             else:
                 table.columns.append(
                         {'title': name, 'is_num': False, 'evalu': None,
@@ -124,7 +131,8 @@ class TableParser:
                 continue
             student = defaultdict(str)
             for i, entry in enumerate(self.split_row(row)):
-                if i >= len(table.columns) or entry.startswith(self.ignore_char):
+                if (i >= len(table.columns) 
+                    or entry.startswith(self.ignore_char)):
                     break
                 if table.columns[i]['is_num']:
                     student.update(
@@ -139,8 +147,12 @@ class TableParser:
         return table
 
 class SimpleRSTParser(TableParser):
-    def __init__(self, first_row, ignore_char=defaults.ignore_char):
-        self.ignore_char = ignore_char
+    """A table parser can read a list of rows and convert them into a
+    GradesTable data structure. The rows have to follow the 'simple rst'
+    table format."""
+
+    def __init__(self, first_row, ignore_char=defaults.IGNORE_CHAR):
+        TableParser.__init__(self, ignore_char=ignore_char)
 
         self.columns = []
         col_start = first_row.find('=')

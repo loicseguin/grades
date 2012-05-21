@@ -22,10 +22,10 @@ class GradesFile:
     content of the file before and after the table.
 
     """
-    def __init__(self, fileh, ignore_char=defaults.ignore_char):
+    def __init__(self, fileh, ignore_char=defaults.IGNORE_CHAR):
         """Initialize the GradesFile object by parsing fileh."""
         self.header = []
-        self.table_format = defaults.table_format
+        self.table_format = defaults.TABLE_FORMAT
         self.footer = []
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
@@ -112,10 +112,10 @@ class TableWriter:
         | *Mean 302*       |       |  67.00 |  78.00 |   80.00 |         |
 
     """
-    def __init__(self, grade_table, min_width=defaults.min_cell_width,
-                 padding_left=defaults.padding_left,
-                 padding_right=defaults.padding_right,
-                 precision=defaults.precision):
+    def __init__(self, grade_table, min_width=defaults.MIN_CELL_WIDTH,
+                 padding_left=defaults.PADDING_LEFT,
+                 padding_right=defaults.PADDING_RIGHT,
+                 precision=defaults.PRECISION):
         """Initialize the writer. The default parameters for a writer are to
         use a minimum column width of 5, left and right padding of 1 and a
         precision for floating point values of 2.

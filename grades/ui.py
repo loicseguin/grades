@@ -18,6 +18,7 @@ __license__ = "BSD"
 import argparse
 import os
 import sys
+from collections import defaultdict
 from . import __version__
 from . import defaults
 from . import writers
@@ -29,23 +30,52 @@ try:
 except NameError:
     pass
 
+
+def _calc_weights(nbevals):
+    """Calculate the weight of each evaluation in a scheme with nbeval
+    evaluations. In general, there are one final exam, one midterm and nbeval -
+    2 small tests."""
+    if nbevals < 1:
+        print(sys.argv[0] +
+            ' init: error: argument -n/--nbevals: must be greater than 0',
+            file=sys.stderr)
+        sys.exit(1)
+    if nbevals == 1:
+        midterm_weight = 0.
+        final_weight = 100.
+        test_weight = 0.
+    elif nbevals == 2:
+        midterm_weight = 40.
+        final_weight = 60.
+        test_weight = 0.
+    else:
+        midterm_weight = 30.
+        final_weight = 40.
+        test_weight = 30. / (nbevals - 2)
+    return final_weight, midterm_weight, test_weight
+
+
 class Runner:
+    """Set the options and execute the chosen subcommands."""
+
     def __init__(self):
         """Define default values."""
-        self.input_filename = defaults.input_filename
-        self.output_filename = defaults.output_filename
-        self.ignore_char = defaults.ignore_char
-        self.calc_char = defaults.calc_char
-        self.precision = defaults.precision
-        self.padding_left = defaults.padding_left
-        self.padding_right = defaults.padding_right
-        self.min_cell_width = defaults.min_cell_width
-        self.columns = defaults.columns
+        self.input_filename = defaults.INPUT_FILENAME
+        self.output_filename = defaults.OUTPUT_FILENAME
+        self.ignore_char = defaults.IGNORE_CHAR
+        self.calc_char = defaults.CALC_CHAR
+        self.precision = defaults.PRECISION
+        self.padding_left = defaults.PADDING_LEFT
+        self.padding_right = defaults.PADDING_RIGHT
+        self.min_cell_width = defaults.MIN_CELL_WIDTH
+        self.columns = defaults.COLUMNS
 
     def read_config(self):
         pass
 
     def print_table(self, args):
+        """Print the table using options specified in command line arguments
+        ``args``."""
         try:
             args.filename = open(args.filename)
         except IOError as e:
@@ -87,27 +117,20 @@ class Runner:
                          padding_right=self.padding_right,
                          precision=self.precision)
 
-    def _calc_weights(self, nbevals):
-        if nbevals < 1:
-            print(sys.argv[0] +
-                ' init: error: argument -n/--nbevals: must be greater than 0',
-                file=sys.stderr)
-            sys.exit(1)
-        if nbevals == 1:
-            midterm_weight = 0.
-            final_weight = 100.
-            test_weight = 0.
-        elif nbevals == 2:
-            midterm_weight = 40.
-            final_weight = 60.
-            test_weight = 0.
-        else:
-            midterm_weight = 30.
-            final_weight = 40.
-            test_weight = 30. / (nbevals - 2)
-        return final_weight, midterm_weight, test_weight
-
     def init(self, args):
+        """Initialize a file containing a grades table.
+
+        This function creates a set of evaluations (7 by default) and writes
+        them to a grades file. The user can specify the number of evaluations
+        using the -n/--nbevals command line argument.
+        
+        There is always a final exam. If more than one evaluation is requested,
+        there will be a midterm. If more than two evaluations are requested,
+        there will be tests. The weights are assigned by the ``_calc_weights``
+        function. For more complicated evaluation grids, the user should create
+        the file by hand.
+
+        """
         if os.path.exists(args.filename):
             print('Do you want to overwrite the file ' + args.filename +
                   '? [y/N]  ', end='')
@@ -122,13 +145,13 @@ class Runner:
                 if col['evalu']:
                     table.columns.remove(col)
 
-            final_w, midterm_w, test_w= self._calc_weights(args.nbevals)
+            final_w, midterm_w, test_w = _calc_weights(args.nbevals)
 
             for i in range((args.nbevals - 1) // 2):
                 table.columns.append(
                     {'title': 'Test ' + str(i + 1), 'is_num': True, 'width': 0,
                      'evalu': {'max_grade': 20., 'weight': test_w}})
-            if midterm_w> 0:
+            if midterm_w > 0:
                 table.columns.append(
                     {'title': 'Midterm', 'is_num': True, 'width': 0,
                      'evalu': {'max_grade': 100., 'weight': midterm_w}})
@@ -194,7 +217,29 @@ class Runner:
         ofile.close()
 
     def add_student(self, args):
-        pass
+        """Add a student to the table and update the file.
+
+        Let the user interactively specify the entry for each non-evaluation
+        column. Inserting the student's grades should be done with the update
+        command.
+
+        """
+        gfile = writers.GradesFile(args.filename, self.ignore_char)
+
+        student = defaultdict(str)
+        for col in gfile.table.columns:
+            if not col['evalu']:
+                student[col['title']] = input("Enter student's " +
+                                              col['title'] + ': ')
+        gfile.table.students.append(student)
+
+        ofile = open(args.filename, 'w')
+        gfile.print_file(file=ofile,
+                         min_width=self.min_cell_width,
+                         padding_left=self.padding_left,
+                         padding_right=self.padding_right,
+                         precision=self.precision)
+        ofile.close()
 
     def run(self, argv=sys.argv[1:]):
         """Make the runner run.
@@ -259,9 +304,13 @@ class Runner:
         add_column_parser.add_argument('filename',
                 help='grades file to read and parse', nargs='?',
                 default=self.input_filename)
+        add_column_parser.set_defaults(func=self.add_column)
+
         add_student_parser = sub_add.add_parser('student',
                 help='add a new student')
-        add_column_parser.set_defaults(func=self.add_column)
+        add_student_parser.add_argument('filename',
+                help='grades file to read and parse', nargs='?',
+                default=self.input_filename)
         add_student_parser.set_defaults(func=self.add_student)
 
         args = clparser.parse_args(argv)

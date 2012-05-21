@@ -299,3 +299,104 @@ class TestUIInit:
 |------+-------+--------+--------+---------+--------+-------|
 """
         self.check_output(argv, init_table)
+
+
+class TestUIAdd:
+    def setUp(self):
+        """Set up class for each test."""
+        self.in_str = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
+|                   |       |  70.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+--------+---------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+|-------------------+-------+--------+--------+---------|
+| Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
+| Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |
+| Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |
+"""
+        self.fd, self.fname = tempfile.mkstemp()
+        of = open(self.fname, 'w')
+        of.write(self.in_str)
+        of.close()
+        self.old_stream = sys.stdout
+        sys.stdout = self.mystdout = io.StringIO()
+        self.runner = ui.Runner()
+
+    def teardown(self):
+        os.close(self.fd)
+        os.unlink(self.fname)
+        sys.stdout = self.old_stream
+
+    def check_output(self, argv, output_str, specs):
+        sys.stdin = io.StringIO('\n'.join(specs))
+        self.runner.run(argv)
+        sys.stdin = sys.__stdin__
+        file_str = open(self.fname).read()
+        assert_equal(file_str.strip(), output_str.strip())
+
+    def test_add_student(self):
+        argv = ['add', 'student', self.fname]
+        output_str = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm |
+|                   |       |  70.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+--------+---------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |
+| Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |
+| Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |
+| Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |
+| Simon Groulx      | 301   |        |        |         |
+"""
+
+        self.check_output(argv, output_str, ['Simon Groulx', '301'])
+
+    def test_add_column(self):
+        argv = ['add', 'column', self.fname]
+        output_str = """\
+| Nom               | Group | Test 1 | Exam Surprise | Test 2 | Midterm |
+|                   |       |  70.00 |         60.00 | 100.00 |  100.00 |
+|                   |       |  10.00 |         23.00 |  10.00 |   30.00 |
+|-------------------+-------+--------+---------------+--------+---------|
+| Bob Arthur        | 301   |  23.00 |               |  45.00 |         |
+| Suzanne Tremblay  | 301   |  67.00 |               |  78.00 |   80.00 |
+| Albert Prévert    | 301   |        |               | ABS    |   78.00 |
+| André Arthur      | 301   |  75.00 |               |  91.00 |   65.00 |
+| Roger Gagnon      | 302   |  67.00 |               |  78.00 |   80.00 |
+| Eleonor Brochu    | 302   |  67.00 |               |  78.00 |   80.00 |
+| Capitaine Haddock | 302   |  34.00 |               |  84.00 |   99.00 |
+| Buster Keaton     | 302   |  56.00 |               |  43.00 |   66.00 |
+| Alicia Keys       | 302   |  82.00 |               | ABS    |   73.00 |
+"""
+
+        self.check_output(argv, output_str, ['Exam Surprise', '3', 'y', '60.', '23.'])
+
+    def test_add_column_default_pos(self):
+        argv = ['add', 'column', self.fname]
+        output_str = """\
+| Nom               | Group | Test 1 | Test 2 | Midterm | Exam Surprise |
+|                   |       |  70.00 | 100.00 |  100.00 |         60.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |         23.00 |
+|-------------------+-------+--------+--------+---------+---------------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |               |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |               |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |               |
+| André Arthur      | 301   |  75.00 |  91.00 |   65.00 |               |
+| Roger Gagnon      | 302   |  67.00 |  78.00 |   80.00 |               |
+| Eleonor Brochu    | 302   |  67.00 |  78.00 |   80.00 |               |
+| Capitaine Haddock | 302   |  34.00 |  84.00 |   99.00 |               |
+| Buster Keaton     | 302   |  56.00 |  43.00 |   66.00 |               |
+| Alicia Keys       | 302   |  82.00 | ABS    |   73.00 |               |
+"""
+
+        self.check_output(argv, output_str, ['Exam Surprise', '', 'y', '60.', '23.'])

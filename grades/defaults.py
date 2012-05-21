@@ -12,16 +12,16 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-input_filename = 'Grades.txt'
-output_filename = 'Grades.txt'
-ignore_char = '*'
-calc_char = '*'
-precision = 2
-padding_left = 1
-padding_right = 1
-min_cell_width = 5
-table_format = 'org'
-columns = [
+INPUT_FILENAME = 'Grades.txt'
+OUTPUT_FILENAME = 'Grades.txt'
+IGNORE_CHAR = '*'
+CALC_CHAR = '*'
+PRECISION = 2
+PADDING_LEFT = 1
+PADDING_RIGHT = 1
+MIN_CELL_WIDTH = 5
+TABLE_FORMAT = 'org'
+COLUMNS = [
         {'title': 'Name', 'is_num': False, 'evalu': None, 'width': 0},
         {'title': 'Group', 'is_num': False, 'evalu': None, 'width': 0},
         {'title': 'Test 1', 'is_num': True, 'width': 0,

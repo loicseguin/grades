@@ -25,7 +25,7 @@ class GradesTable:
     calculations and modify the table to include the results.
 
     """
-    def __init__(self, data=None, calc_char=defaults.calc_char):
+    def __init__(self, data=None, calc_char=defaults.CALC_CHAR):
         """Instanciate a new GradesTable.
 
         Input
