@@ -104,12 +104,18 @@ class GradesTable:
 
         """
         cumul = self.__decorate('Cumul')
+        supp = None
+        for column in self.columns:
+            if column['title'].upper().startswith('SUPP'):
+                supp = column
+                break
         for student in self.students:
             student[cumul] = 0.
             tot_weight = 0.
             for column in self.columns:
-                if column['evalu'] and isinstance(student[column['title']],
-                        (float, int)):
+                if (column['evalu']
+                    and isinstance(student[column['title']], (float, int))
+                    and column != supp):
                     student[cumul] += (student[column['title']] *
                         column['evalu']['weight'] /
                         column['evalu']['max_grade'])
@@ -117,6 +123,23 @@ class GradesTable:
             student[cumul] /= (tot_weight or 1.) * 0.01
         self.columns.append({'title': cumul, 'is_num': True,
                              'evalu': None, 'width': 0})
+        if supp:
+            adj = self.__decorate('Adjustment')
+            self.columns.append({'title': adj,
+                                 'is_num': True,
+                                 'evalu': None, 'width': 0})
+            after_supp = self.__decorate('Cumul with supp')
+            self.columns.append({'title': after_supp,
+                                 'is_num': True,
+                                 'evalu': None, 'width': 0})
+            for student in self.students:
+                if isinstance(student[supp['title']], (float, int)):
+                    if student[supp['title']] < 60:
+                        student[adj] = 0.
+                        student[after_supp] = student[cumul]
+                    else:
+                        student[adj] = 60. - student[cumul]
+                        student[after_supp] = 60.
 
     def compute_mean(self, students=None, row_name='Mean'):
         """Calculate the mean for each evaluation and add the results to

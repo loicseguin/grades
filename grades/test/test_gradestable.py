@@ -11,7 +11,7 @@ __license__ = "BSD"
 
 
 from collections import defaultdict
-from nose.tools import assert_equal, assert_not_equal, assert_almost_equal
+from nose.tools import assert_equal, assert_not_equal, assert_almost_equal, assert_raises
 import grades
 
 
@@ -155,6 +155,14 @@ class TestGrablesTable(object):
         sumtable = gtable1 + gtable2
         assert_equal(gtable, sumtable)
 
+    def test_add_tables_with_different_headers(self):
+        """Add two tables with different headers."""
+        gtable1 = self.tparser.parse(self.in_str.split('\n')[:7])
+        gtable2 = self.tparser.parse(self.in_str.split('\n')[:4]
+                                            + self.in_str.split('\n')[7:])
+        gtable2.columns.pop()
+        assert_raises(TypeError, gtable1.__add__, gtable2)
+
     def test_add_student(self):
         """Add a student to a table."""
         gtable = self.tparser.parse(self.in_str.split('\n')[:7])
@@ -173,6 +181,13 @@ class TestGrablesTable(object):
         assert_equal(gtable.columns, sumtable.columns)
         assert_equal(sumtable.students, students)
 
+    def test_add_student_with_different_headers(self):
+        """Add a student to a table with different headers."""
+        gtable = self.tparser.parse(self.in_str.split('\n')[:7])
+        student = defaultdict(str, (('Name', 'André Arthur'), ('Group', '301'),
+                    ('Test 1', 75.00), ('Midterm', 65.00)))
+        assert_raises(TypeError, gtable.__add__, student)
+
     def test_select(self):
         """Test selection of students."""
         self.tparser.ignore_char = '/'
@@ -185,3 +200,67 @@ class TestGrablesTable(object):
                  'Test 2': 43.00, 'Midterm': 66.00}]
         assert_equal(gtable.columns, stable.columns)
         assert_equal(students, stable.students)
+
+    def test_cumul_with_supp_pass(self):
+        in_str = """\
+| Name              | Group | Test 1 | Test 2 | Midterm | Supplemental exam |
+|                   |       |  70.00 | 100.00 |  100.00 |            100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |              0.00 |
+|-------------------+-------+--------+--------+---------+-------------------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |             78.00 |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |                   |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |                   |
+"""
+        gtable = self.tparser.parse(in_str.split('\n'))
+        gtable.compute_cumul()
+        students = [
+                {'Name': 'Bob Arthur', 'Group': '301',
+                    'Test 1': 23.00, 'Test 2': 45.00, 'Midterm': '',
+                    'Supplemental exam': 78.,
+                    '*Cumul*': 38.9285714,
+                    '*Adjustment*': 21.0714286,
+                    '*Cumul with supp*': 60.0},
+                {'Name': 'Suzanne Tremblay', 'Group': '301',
+                    'Test 1': 67.00, 'Test 2': 78.00, 'Midterm': 80.,
+                    '*Cumul*': 82.7428571},
+                {'Name': 'Albert Prévert', 'Group': '301',
+                    'Test 1': '', 'Test 2': 'ABS', 'Midterm': 78.,
+                    '*Cumul*': 78.}]
+        assert_equal(gtable.columns[6]['title'], '*Cumul*')
+        assert_equal(gtable.columns[7]['title'], '*Adjustment*')
+        assert_equal(gtable.columns[8]['title'], '*Cumul with supp*')
+        for i, student in enumerate(students):
+            for key in student:
+                assert_almost_equal(student[key], gtable.students[i][key])
+
+    def test_cumul_with_supp_fail(self):
+        in_str = """\
+| Name              | Group | Test 1 | Test 2 | Midterm | Supplemental exam |
+|                   |       |  70.00 | 100.00 |  100.00 |            100.00 |
+|                   |       |  10.00 |  10.00 |   30.00 |              0.00 |
+|-------------------+-------+--------+--------+---------+-------------------|
+| Bob Arthur        | 301   |  23.00 |  45.00 |         |             58.00 |
+| Suzanne Tremblay  | 301   |  67.00 |  78.00 |   80.00 |                   |
+| Albert Prévert    | 301   |        | ABS    |   78.00 |                   |
+"""
+        gtable = self.tparser.parse(in_str.split('\n'))
+        gtable.compute_cumul()
+        students = [
+                {'Name': 'Bob Arthur', 'Group': '301',
+                    'Test 1': 23.00, 'Test 2': 45.00, 'Midterm': '',
+                    'Supplemental exam': 58.,
+                    '*Cumul*': 38.9285714,
+                    '*Adjustment*': 0.00,
+                    '*Cumul with supp*': 38.9285714},
+                {'Name': 'Suzanne Tremblay', 'Group': '301',
+                    'Test 1': 67.00, 'Test 2': 78.00, 'Midterm': 80.,
+                    '*Cumul*': 82.7428571},
+                {'Name': 'Albert Prévert', 'Group': '301',
+                    'Test 1': '', 'Test 2': 'ABS', 'Midterm': 78.,
+                    '*Cumul*': 78.}]
+        assert_equal(gtable.columns[6]['title'], '*Cumul*')
+        assert_equal(gtable.columns[7]['title'], '*Adjustment*')
+        assert_equal(gtable.columns[8]['title'], '*Cumul with supp*')
+        for i, student in enumerate(students):
+            for key in student:
+                assert_almost_equal(student[key], gtable.students[i][key])
