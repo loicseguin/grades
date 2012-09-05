@@ -97,6 +97,11 @@ class Runner:
             if args.columns:
                 args.columns.append(self.calc_char +
                                     'Cumul' + self.calc_char)
+        if args.assignments:
+            gfile.table.compute_assignment_mean()
+            if args.columns:
+                args.columns.append(self.calc_char + 'Assignments' +
+                        self.calc_char)
         if args.students:
             gfile.table = gfile.table.select(args.students)
         if args.mean:
@@ -261,6 +266,8 @@ class Runner:
                 help='print the mean for each evaluation')
         printparser.add_argument('-c', '--cumul', action='store_true',
                 help='print the cumulative grade for each student')
+        printparser.add_argument('-a', '--assignments', action='store_true',
+                help='print the assignment grade for each student')
         printparser.add_argument('-t', '--tableonly', action='store_true',
                 help='print only the table')
         printparser.add_argument('-d', '--divs',

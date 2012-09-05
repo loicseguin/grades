@@ -37,7 +37,8 @@ from . import defaults
 
 
 ROW_SEPS = ('--', '|-', '+-', '|=', '+=', '==')
-EVAL_NAMES = ('TEST', 'EXAM', 'MIDTERM', 'QUIZ', 'FINAL', 'EVAL', 'SUPP')
+EVAL_NAMES = ('TEST', 'EXAM', 'MIDTERM', 'QUIZ', 'FINAL', 'EVAL', 'SUPP',
+              'DEVOIR')
 
 
 def _to_float(val, default=100.):

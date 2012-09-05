@@ -20,6 +20,9 @@ import re
 from . import defaults
 
 
+ASSIGNMENT_NAMES = ('DEVOIR', 'ASSIGNMENT')
+
+
 class GradesTable:
     """A GradesTable contains all the data in a table and can perform
     calculations and modify the table to include the results.
@@ -103,7 +106,7 @@ class GradesTable:
         in a new column at the end of the table.
 
         """
-        cumul = self.__decorate('Cumul')
+        cumul = self.__decorate('cumul')
         supp = None
         for column in self.columns:
             if column['title'].upper().startswith('SUPP'):
@@ -140,6 +143,22 @@ class GradesTable:
                     else:
                         student[adj] = 60. - student[cumul]
                         student[after_supp] = 60.
+
+    def compute_assignment_mean(self):
+        """Calculate the mean for each student for assignments."""
+        assign_cumul = self.__decorate('Assignments')
+        for student in self.students:
+            student[assign_cumul] = 0.
+            tot_weight = 0.
+            for column in self.columns:
+                if (column['evalu']
+                    and isinstance(student[column['title']], (float, int))
+                    and column['title'].upper().startswith(ASSIGNMENT_NAMES)):
+                    student[assign_cumul] += (student[column['title']])
+                    tot_weight += 1.
+            student[assign_cumul] /= (tot_weight or 1.) * 0.01
+        self.columns.append({'title': assign_cumul, 'is_num': True,
+                             'evalu': None, 'width': 0})
 
     def compute_mean(self, students=None, row_name='Mean'):
         """Calculate the mean for each evaluation and add the results to
