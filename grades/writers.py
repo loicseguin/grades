@@ -12,14 +12,15 @@ __license__ = "BSD"
 
 
 import sys
+import StringIO
 from . import defaults
 from . import parsers
 
 
 class GradesFile:
-    """A GradesFile contains one table of grades. The GradesFile
-    object is initialized with a filename. It takes care of safeguarding the
-    content of the file before and after the table.
+    """A GradesFile contains one table of grades. The GradesFile object is
+    initialized with a file handle. It takes care of safeguarding the content
+    of the file before and after the table.
 
     """
     def __init__(self, fileh, ignore_char=defaults.IGNORE_CHAR):
@@ -30,6 +31,17 @@ class GradesFile:
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
             fileh = open(fileh, 'r')
+        if fileh.name.endswith('.asc'):
+            try:
+                import gnupg
+            except ImportError:
+                print("GradesFile: error: cannot import gnupg.  To read " +
+                      "encrypted files, install python-gnupg.",
+                      file=sys.stderr)
+                sys.exit(10)
+            gpg = gnupg.GPG()
+            data = gpg.decrypt_file(fileh)
+            fileh = StringIO.StringIO(data.data)
         is_table = False
         line = fileh.readline()
         while line:
