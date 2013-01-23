@@ -12,7 +12,13 @@ __license__ = "BSD"
 
 
 import sys
-import StringIO
+try:
+    import cStringIO as io
+except ImportError:
+    try:
+        import StringIO as io
+    except ImportError:
+        import io  # For Python 3
 from . import defaults
 from . import parsers
 
@@ -40,8 +46,8 @@ class GradesFile:
                       file=sys.stderr)
                 sys.exit(10)
             gpg = gnupg.GPG()
-            data = gpg.decrypt_file(fileh)
-            fileh = StringIO.StringIO(data.data)
+            data = gpg.decrypt(fileh.read())
+            fileh = io.StringIO(data.data.decode())
         is_table = False
         line = fileh.readline()
         while line:

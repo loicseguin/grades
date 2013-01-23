@@ -148,6 +148,7 @@ class TestTableWriter:
 
     def test_wrong_order(self):
         """Test computing mean before cumul. Works with defaultdict."""
+        #self.maxDiff = None
         self.gtable.compute_grouped_mean('Group')
         subtable = self.gtable[1:7:2]
         subtable.compute_grouped_mean('Group')
