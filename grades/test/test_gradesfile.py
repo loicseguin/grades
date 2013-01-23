@@ -210,6 +210,7 @@ lines and columns.
         gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_grouped_mean('Group')
+        gfile.table_format = 'org'
         self.check_output(self.output_str, gfile, div_on=('Group',))
 
     def test_grouped(self):
@@ -217,6 +218,7 @@ lines and columns.
         column."""
         gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_grouped_mean('Group')
+        gfile.table_format = 'org'
         self.check_output(self.output_str2, gfile)
 
     def test_malformed(self):
@@ -233,6 +235,7 @@ lines and columns.
         and test 1 results."""
         gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_mean()
+        gfile.table_format = 'org'
         self.check_output(self.output_str3, gfile, div_on=('Group', 'Test 1'))
 
     def test_cols(self):
@@ -240,6 +243,7 @@ lines and columns.
         gfile = grades.writers.GradesFile(self.fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
+        gfile.table_format = 'org'
         self.check_output(self.output_str4, gfile, div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'))
 
@@ -299,6 +303,7 @@ lines and columns.
         gfile = grades.writers.GradesFile(fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
+        gfile.table_format = 'org'
         self.check_output(self.output_str4, gfile, div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'))
 
@@ -340,6 +345,7 @@ lines and columns.
         gfile = grades.writers.GradesFile(fname)
         gfile.table.compute_cumul()
         gfile.table.compute_mean()
+        gfile.table_format = 'org'
         self.check_output(self.output_str4, gfile, div_on=('Group',),
                          columns=('Nom', 'Test 1', 'Test 2', '*Cumul*'))
 

@@ -106,7 +106,7 @@ class GradesTable:
         in a new column at the end of the table.
 
         """
-        cumul = self.__decorate('cumul')
+        cumul = self.__decorate('Cumul')
         supp = None
         for column in self.columns:
             if column['title'].upper().startswith('SUPP'):

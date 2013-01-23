@@ -176,51 +176,51 @@ pencil case.
         any row separator between students."""
         in_rows = self.in_str.split('\n')
         out_str = '\n'.join(in_rows[:12] + in_rows[13:])
-        self.check_output(['print', self.fname], out_str)
+        self.check_output(['print', self.fname, '-f', 'org'], out_str)
 
     def test_print_all_opts(self):
         argv = ['print', '-mctd', 'Group', '-g', 'Group', '-C',
-                'Nom,Group,Test 1', self.fname]
+                'Nom,Group,Test 1', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str1)
 
     def test_invalid_column_div(self):
-        argv = ['print', '-d', 'Spam', self.fname]
+        argv = ['print', '-d', 'Spam', self.fname, '-f', 'org']
         assert_raises(ValueError, self.runner.run, argv)
 
     def test_invalid_column_group(self):
-        argv = ['print', '-g', 'Spam', self.fname]
+        argv = ['print', '-g', 'Spam', self.fname, '-f', 'org']
         assert_raises(ValueError, self.runner.run, argv)
 
     def test_invalid_column_C(self):
-        argv = ['print', '-tC', 'Nom,Spam,Test 1', self.fname]
+        argv = ['print', '-tC', 'Nom,Spam,Test 1', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str2)
 
     def test_select_name(self):
-        argv = ['print', '-ts', 'Nom=Bob Arthur', self.fname]
+        argv = ['print', '-ts', 'Nom=Bob Arthur', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str3)
 
     def test_select_name2(self):
-        argv = ['print', '-ts', 'Nom == Bob Arthur', self.fname]
+        argv = ['print', '-ts', 'Nom == Bob Arthur', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str3)
 
     def test_select_name3(self):
-        argv = ['print', '-ts', 'Nom < Mon', self.fname]
+        argv = ['print', '-ts', 'Nom < Mon', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str4)
 
     def test_select_test_2(self):
-        argv = ['print', '-ts', 'Test 2 >= 80', self.fname]
+        argv = ['print', '-ts', 'Test 2 >= 80', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str5)
 
     def test_select_ne(self):
-        argv = ['print', '-ts', 'Test 2 != ABS', self.fname]
+        argv = ['print', '-ts', 'Test 2 != ABS', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str6)
 
     def test_invalid_select(self):
-        argv = ['print', '-ts', 'Test / 2', self.fname]
+        argv = ['print', '-ts', 'Test / 2', self.fname, '-f', 'org']
         assert_raises(Exception, self.runner.run, argv)
 
     def test_select_empty(self):
-        argv = ['print', '-ts', 'Test 2 = -1', self.fname]
+        argv = ['print', '-ts', 'Test 2 = -1', self.fname, '-f', 'org']
         self.check_output(argv, self.out_str7)
 
 
@@ -238,7 +238,7 @@ class TestUIInit:
         assert_equal(file_str.strip(), output_str.strip())
 
     def test_init(self):
-        argv = ['init', self.fname]
+        argv = ['init', self.fname, '-f', 'org']
         init_table = """\
 | Name | Group | Test 1 | Test 2 | Test 3 | Midterm | Test 4 | Test 5 | Test 6 | Final |
 |      |       |  20.00 |  20.00 |  20.00 |  100.00 |  20.00 |  20.00 |  20.00 |100.00 |
@@ -271,7 +271,7 @@ class TestUIInit:
         self.check_output(argv, init_table)
 
     def test_nbevals_1(self):
-        argv = ['init', '-n', '1', self.fname]
+        argv = ['init', '-n', '1', self.fname, '-f', 'org']
         init_table = """\
 | Name | Group | Final |
 |      |       |100.00 |
@@ -281,7 +281,7 @@ class TestUIInit:
         self.check_output(argv, init_table)
 
     def test_nbevals_2(self):
-        argv = ['init', '-n', '2', self.fname]
+        argv = ['init', '-n', '2', self.fname, '-f', 'org']
         init_table = """\
 | Name | Group | Midterm | Final |
 |      |       |  100.00 |100.00 |
@@ -291,7 +291,7 @@ class TestUIInit:
         self.check_output(argv, init_table)
 
     def test_nbevals_5(self):
-        argv = ['init', '-n', '5', self.fname]
+        argv = ['init', '-n', '5', self.fname, '-f', 'org']
         init_table = """\
 | Name | Group | Test 1 | Test 2 | Midterm | Test 3 | Final |
 |      |       |  20.00 |  20.00 |  100.00 |  20.00 |100.00 |
@@ -341,7 +341,7 @@ class TestUIAdd:
         assert_equal(file_str.strip(), output_str.strip())
 
     def test_add_student(self):
-        argv = ['add', 'student', self.fname]
+        argv = ['add', 'student', self.fname, '-f', 'org']
         output_str = """\
 | Nom               | Group | Test 1 | Test 2 | Midterm |
 |                   |       |  70.00 | 100.00 |  100.00 |
@@ -362,7 +362,7 @@ class TestUIAdd:
         self.check_output(argv, output_str, ['Simon Groulx', '301'])
 
     def test_add_column(self):
-        argv = ['add', 'column', self.fname]
+        argv = ['add', 'column', self.fname, '-f', 'org']
         output_str = """\
 | Nom               | Group | Test 1 | Exam Surprise | Test 2 | Midterm |
 |                   |       |  70.00 |         60.00 | 100.00 |  100.00 |
@@ -382,7 +382,7 @@ class TestUIAdd:
         self.check_output(argv, output_str, ['Exam Surprise', '3', 'y', '60.', '23.'])
 
     def test_add_column_default_pos(self):
-        argv = ['add', 'column', self.fname]
+        argv = ['add', 'column', self.fname, '-f', 'org']
         output_str = """\
 | Nom               | Group | Test 1 | Test 2 | Midterm | Exam Surprise |
 |                   |       |  70.00 | 100.00 |  100.00 |         60.00 |

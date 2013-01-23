@@ -213,6 +213,8 @@ class Runner:
                  'evalu': None})
 
         ofile = open(args.filename, 'w')
+        if args.table_format:
+            gfile.table_format = args.table_format
         gfile.print_file(file=ofile,
                          min_width=self.min_cell_width,
                          padding_left=self.padding_left,
@@ -238,6 +240,8 @@ class Runner:
         gfile.table.students.append(student)
 
         ofile = open(args.filename, 'w')
+        if args.table_format:
+            gfile.table_format = args.table_format
         gfile.print_file(file=ofile,
                          min_width=self.min_cell_width,
                          padding_left=self.padding_left,
@@ -259,8 +263,14 @@ class Runner:
         clparser.add_argument('-v', '--version', action='version',
                 version='%(prog)s ' + __version__)
 
+        format_parser = argparse.ArgumentParser(add_help=False)
+        format_parser.add_argument('-f', '--format', dest='table_format',
+                help='table format for printing (org, simple_rst, grid_rst)',
+                choices=['org', 'simple_rst', 'grid_rst'])
+
         subparsers = clparser.add_subparsers()
-        printparser = subparsers.add_parser('print', help='print the grades table')
+        printparser = subparsers.add_parser('print',
+                help='print the grades table', parents=[format_parser])
         printparser.add_argument('-m', '--mean', action='store_true',
                 help='print the mean for each evaluation')
         printparser.add_argument('-c', '--cumul', action='store_true',
@@ -278,9 +288,6 @@ class Runner:
         printparser.add_argument('-g', '--grouped', dest='groups',
                 help='print the mean for each GROUP for each evaluation; '
                      + 'GROUP must be a column title')
-        printparser.add_argument('-f', '--format', dest='table_format',
-                help='table format for printing (org, simple_rst, grid_rst)',
-                choices=['org', 'simple_rst', 'grid_rst'])
         printparser.add_argument('-s', '--students',
                 help='expression specifying students to print')
         #printparser.add_argument('-o', '--output', type=argparse.FileType('w'),
@@ -291,13 +298,10 @@ class Runner:
         printparser.set_defaults(func=self.print_table)
 
         initparser = subparsers.add_parser('init',
-                help='initialize a new grades file')
+                help='initialize a new grades file', parents=[format_parser])
         initparser.add_argument('filename', nargs='?',
                 help='file where grades table skeleton will be written',
                 default=self.output_filename)
-        initparser.add_argument('-f', '--format', dest='table_format',
-                help='table format for printing (org, simple_rst, grid_rst)',
-                choices=['org', 'simple_rst', 'grid_rst'])
         initparser.add_argument('-n', '--nbevals', type=int,
                 help='number of evaluations in table')
         initparser.set_defaults(func=self.init)
@@ -306,14 +310,14 @@ class Runner:
                 help='add a new student or evaluation')
         sub_add = addparser.add_subparsers()
         add_column_parser = sub_add.add_parser('column',
-                help='add a new column')
+                help='add a new column', parents=[format_parser])
         add_column_parser.add_argument('filename',
                 help='grades file to read and parse', nargs='?',
                 default=self.input_filename)
         add_column_parser.set_defaults(func=self.add_column)
 
         add_student_parser = sub_add.add_parser('student',
-                help='add a new student')
+                help='add a new student', parents=[format_parser])
         add_student_parser.add_argument('filename',
                 help='grades file to read and parse', nargs='?',
                 default=self.input_filename)
