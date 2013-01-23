@@ -80,18 +80,17 @@ class Runner:
             args.filename = open(args.filename)
         except IOError as e:
             print(e, file=sys.stderr)
-            #sys.exit(1)
             return
 
         gfile = writers.GradesFile(args.filename, self.ignore_char)
         if self.calc_char != self.ignore_char:
             gfile.table.calc_char = self.calc_char
         if args.columns:
-            args.columns = args.columns.split(',')
+            args.columns = [col.strip() for col in args.columns.split(',')]
         if args.divs:
-            args.divs = args.divs.split(',')
+            args.divs = [div.strip() for div in args.divs.split(',')]
         if args.groups:
-            args.groups = args.groups.split(',')
+            args.groups = [group.strip() for group in args.groups.split(',')]
         if args.cumul:
             gfile.table.compute_cumul()
             if args.columns:
