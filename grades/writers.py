@@ -13,12 +13,9 @@ __license__ = "BSD"
 
 import sys
 try:
-    import cStringIO as io
+    import StringIO as io
 except ImportError:
-    try:
-        import StringIO as io
-    except ImportError:
-        import io  # For Python 3
+    import io  # For Python 3
 from . import defaults
 from . import parsers
 
@@ -37,6 +34,9 @@ class GradesFile:
         tablerows = []
         if not hasattr(fileh, 'read'): # Not a file object, maybe a file name?
             fileh = open(fileh, 'r')
+            fname = fileh
+        else:
+            fname = fileh.name
         if fileh.name.endswith('.asc'):
             try:
                 import gnupg
@@ -68,7 +68,7 @@ class GradesFile:
             line = fileh.readline()
 
         if len(tablerows) < 3:
-            raise Exception('Malformed table in file ' + fileh.name)
+            raise Exception('Malformed table in file ' + fname)
         if tablerows[0][0] == '=':
             tparser = parsers.SimpleRSTParser(tablerows[0],
                     ignore_char=ignore_char)

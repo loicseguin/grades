@@ -60,7 +60,7 @@ class Runner:
 
     def __init__(self):
         """Define default values."""
-        self.input_filename = defaults.INPUT_FILENAME
+        self.input_filenames = defaults.INPUT_FILENAMES
         self.output_filename = defaults.OUTPUT_FILENAME
         self.ignore_char = defaults.IGNORE_CHAR
         self.calc_char = defaults.CALC_CHAR
@@ -76,13 +76,22 @@ class Runner:
     def print_table(self, args):
         """Print the table using options specified in command line arguments
         ``args``."""
-        try:
-            args.filename = open(args.filename)
-        except IOError as e:
-            print(e, file=sys.stderr)
+        if args.filename:
+            fnames = [args.filename or ''] + self.input_filenames
+        else:
+            fnames = self.input_filenames
+        for fname in fnames:
+            try:
+                table_file = open(fname)
+                break
+            except IOError as e:
+                pass
+        else:
+            print("error: could not open input file, tried {}".format(fnames))
+            self.clparser.print_help()
             return
 
-        gfile = writers.GradesFile(args.filename, self.ignore_char)
+        gfile = writers.GradesFile(table_file, self.ignore_char)
         if self.calc_char != self.ignore_char:
             gfile.table.calc_char = self.calc_char
         if args.columns:
@@ -258,9 +267,9 @@ class Runner:
         """
         self.read_config()
 
-        clparser = argparse.ArgumentParser(
+        self.clparser = argparse.ArgumentParser(
             description='A grade management tool with plain text tables storage.')
-        clparser.add_argument('-v', '--version', action='version',
+        self.clparser.add_argument('-v', '--version', action='version',
                 version='%(prog)s ' + __version__)
 
         format_parser = argparse.ArgumentParser(add_help=False)
@@ -268,7 +277,7 @@ class Runner:
                 help='table format for printing (org, simple_rst, grid_rst)',
                 choices=['org', 'simple_rst', 'grid_rst'])
 
-        subparsers = clparser.add_subparsers()
+        subparsers = self.clparser.add_subparsers()
         printparser = subparsers.add_parser('print',
                 help='print the grades table', parents=[format_parser])
         printparser.add_argument('-m', '--mean', action='store_true',
@@ -293,8 +302,7 @@ class Runner:
         #printparser.add_argument('-o', '--output', type=argparse.FileType('w'),
                 #help='write output in file name')
         printparser.add_argument('filename',
-                help='grades file to read and parse', nargs='?',
-                default=self.input_filename)
+                help='grades file to read and parse', nargs='?')
         printparser.set_defaults(func=self.print_table)
 
         initparser = subparsers.add_parser('init',
@@ -312,16 +320,15 @@ class Runner:
         add_column_parser = sub_add.add_parser('column',
                 help='add a new column', parents=[format_parser])
         add_column_parser.add_argument('filename',
-                help='grades file to read and parse', nargs='?',
-                default=self.input_filename)
+                help='grades file to read and parse', nargs='?')
         add_column_parser.set_defaults(func=self.add_column)
 
         add_student_parser = sub_add.add_parser('student',
                 help='add a new student', parents=[format_parser])
         add_student_parser.add_argument('filename',
-                help='grades file to read and parse', nargs='?',
-                default=self.input_filename)
+                help='grades file to read and parse', nargs='?')
         add_student_parser.set_defaults(func=self.add_student)
 
-        args = clparser.parse_args(argv)
+        args = self.clparser.parse_args(argv)
+
         args.func(args)

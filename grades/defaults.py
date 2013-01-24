@@ -12,7 +12,7 @@ __author__ = "Loïc Séguin-C. <loicseguin@gmail.com>"
 __license__ = "BSD"
 
 
-INPUT_FILENAME = 'Grades.rst'
+INPUT_FILENAMES = ['Grades.rst.asc', 'Grades.rst']
 OUTPUT_FILENAME = 'Grades.rst'
 IGNORE_CHAR = '*'
 CALC_CHAR = '*'
