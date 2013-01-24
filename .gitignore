@@ -15,4 +15,5 @@ MANIFEST
 dist
 build
 .DS_Store
+.coverage
 
