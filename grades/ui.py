@@ -331,4 +331,7 @@ class Runner:
 
         args = self.clparser.parse_args(argv)
 
-        args.func(args)
+        if hasattr(args, 'func'):
+            args.func(args)
+        else:
+            self.clparser.print_help()
