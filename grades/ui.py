@@ -19,6 +19,7 @@ import argparse
 import os
 import sys
 from collections import defaultdict
+import matplotlib.pyplot as plt
 from . import __version__
 from . import defaults
 from . import writers
@@ -258,6 +259,28 @@ class Runner:
                          precision=self.precision)
         ofile.close()
 
+
+    def plot(self, args):
+        """Plot a histogram of the given evaluation."""
+        fnames = self.input_filenames
+        for fname in fnames:
+            try:
+                table_file = open(fname)
+                break
+            except IOError as e:
+                pass
+        else:
+            print("error: could not open input file, tried {}".format(fnames))
+            self.clparser.print_help()
+            return
+
+        gfile = writers.GradesFile(table_file, self.ignore_char)
+        results = [student[args.eval] for student in gfile.table.students]
+        plt.hist(results)
+        plt.title(args.eval)
+        plt.show()
+
+
     def run(self, argv=sys.argv[1:]):
         """Make the runner run.
 
@@ -328,6 +351,12 @@ class Runner:
         add_student_parser.add_argument('filename',
                 help='grades file to read and parse', nargs='?')
         add_student_parser.set_defaults(func=self.add_student)
+        
+        plotparser = subparsers.add_parser('plot',
+                help='draw a histogram of results for the given evaluation')
+        plotparser.add_argument('eval',
+                help='evaluation for which to plot histogram')
+        plotparser.set_defaults(func=self.plot)
 
         args = self.clparser.parse_args(argv)
 
